@@ -1,0 +1,424 @@
+---
+title: "Exploring: Linking land-use and land-cover transitions to their ecological impact in the Amazon"
+author: 
+  - name: Hugo Tameirão Seixas
+    email: seixas.hugo@protonmail.com
+    url: hugotseixas.com
+toc: true
+toc-title: Contents
+format: 
+  html:
+    theme: lux
+    df-print: paged
+    code-fold: true
+page-layout: article
+abstract: "Lets explore data on the impacts of land use transitions over ecosystem services! I will explore aplication of predctive models over this data."
+highlight-style: arrow
+license: CC BY 4.0
+---
+
+
+# Introduction
+
+This exploration exercise will use data from the paper "Linking land-use and land-cover transitions to their ecological impact in the Amazon".
+
+Here are the packages used in this exercise:
+
+
+```{r}
+#| label: load packages
+#| warning: false
+
+library(arrow)
+library(curl)
+library(glue)
+library(fs)
+library(ggiraph)
+library(tidyverse)
+library(tidymodels)
+
+```
+
+
+# Download and organize data
+
+Lets download the data! I am going to download the data from Zenodo, than open it in the local machine and keep only the files of interest.
+
+
+```{r}
+#| label: download data
+
+file_name <- "data/LULC_transitions-v1.1.zip"
+
+curl_download(
+  url = glue(
+    "https://zenodo.org/record/6518744/files/",
+    "cassioalencarnunes/LULC_transitions-v1.1.zip?download=1"
+  ),
+  destfile = file_name
+)
+
+unzip(
+  zipfile = file_name,
+  exdir = "data/"
+)
+
+data_files <- 
+  dir_ls(
+    path = "data/cassioalencarnunes-LULC_transitions-c501bd5/Data/"
+  )
+
+file_move(path = data_files, new_path = "data/")
+
+dir_delete(path = "data/cassioalencarnunes-LULC_transitions-c501bd5/")
+
+file_delete(path = "data/LULC_transitions-v1.1.zip")
+
+dir_info("data/") %>%
+  select(path, size)
+
+```
+
+
+I will start opening the table files and organize them into a single table. I will start with the transect classification data, which holds data of two regions, STM ( municipalities of Santarém, Belterra, and Mojuí-dos-Campos) and PGM (municipality of Parangominas):
+
+
+```{r}
+
+tr_class <- 
+  read_delim(
+    file = "data/Transect_classification.csv",
+    col_select = c(2:6), # Remove unnamed id column
+    name_repair = ~ 
+      str_replace(
+        string = tolower(.), # I prefer everything in lowercase
+        pattern = "-", # These traces are problematic 
+        replacement = "_"
+      ), 
+    col_types = "_ccccc"
+  )
+
+head(tr_class)
+
+```
+
+
+I will also use the table with some environmental variables.
+
+
+```{r}
+
+envr <-
+  read_delim(
+    file = "data/environment_all.txt",
+    col_select = c(1:10, 37:38, 49:50),
+    name_repair = ~ 
+      str_replace(
+        string = tolower(.), # I prefer everything in lowercase
+        pattern = "-", # These traces are problematic 
+        replacement = "_"
+      ), 
+    col_types = "cccc"
+  ) %>%
+  mutate(
+    land_useclass = 
+      str_replace( # Fix land use variable 
+        string = land_useclass, 
+        pattern = "Mechanisd_agriculture",
+        replacement = "Mechanized_agriculture"
+      )
+  )
+
+head(envr)
+
+```
+
+```{r}
+
+soil <- 
+  map_df(
+    .x = dir_ls(path = "data/", regexp = "Soil"),
+    .f = function(t) {
+      
+      table <- 
+        read_delim(
+          file = t,
+          col_select = c(2:6),
+          name_repair = ~ tolower(.),
+          col_types = "_cccc"
+        )
+      
+    }
+  )
+
+head(soil)
+
+```
+
+```{r}
+
+carbon <- 
+  map_df(
+    .x = dir_ls(path = "data/", regexp = "Carbon"),
+    .f = function(t) {
+      
+      table <- 
+        read_delim(
+          file = t,
+          name_repair = ~ tolower(.), # I prefer everything in lowercase
+          col_types = "c"
+        ) %>%
+        mutate(region = str_extract(t, "PGM|STM"))
+      
+    }
+  )
+
+head(carbon)
+
+```
+
+
+There is a lot of tables containing biodiversity variables to be analysed. Since they are stored in many different tables, I will map the operation using the **purrr** package, in which we will apply a function to every biodiversity table. The function will open the tables, pivot them to a longer format (there are many columns indicating a certain specie), and than create a new column indicating what is the group that the species are part of. There was a weird column in the dung beetle table, named "aaaaaa", I removed it just as the author of the paper.
+
+
+```{r}
+
+# Create list of files that contains tables with biodiversity data
+tables_list <- 
+  dir_ls(path = "data/") %>%
+  str_subset(
+    pattern = regex(
+      "ants|trees|bees|birds|dung_beetles|liana|saplings", 
+      ignore_case = TRUE
+    )
+  )
+
+# Merge tables in a single table
+biodiversity <- map_df(
+  .x = tables_list,
+  .f = function(t) {
+    
+    table <- read_delim(
+      file = t,
+      name_repair = ~ tolower(.),
+      col_select = !matches("aaaaa"), # Remove weird column
+      col_types = "cccc"
+    )
+    
+    table %>%
+      pivot_longer(
+        cols = starts_with("sp"),
+        names_to = "specie",
+        values_to = "number"
+      ) %>%
+      mutate(
+        specie_type = str_remove_all(
+          string = t, 
+          pattern = "data/|_|STM|PGM|.txt"
+        )
+      )
+    
+  }
+)
+
+head(biodiversity)
+
+```
+
+```{r}
+
+full_data <- tr_class %>%
+  inner_join(
+    y = envr, 
+    by = c("region", "catchment", "transect", "transect_code" = "transectcode")
+  ) %>%
+  inner_join(
+    y = soil, 
+    by = c("region", "catchment", "transect", "transect_code")
+  ) %>%
+  inner_join(
+    y = carbon, 
+    by = c("region", "transect_code")
+  ) %>%
+  inner_join(
+    y = biodiversity, 
+    by = c("region", "catchment", "transect", "transect_code")
+  ) %>%
+  mutate(
+    land_useclass = str_replace_all( # Make LULC names more beautiful
+      string = land_useclass, 
+      pattern = "-|_",
+      replacement = " "
+    )
+  )
+
+write_parquet(
+  x = full_data,
+  sink = "data/lulc_eco.parquet",
+  version = "latest"
+)
+
+file_delete(
+  path = dir_ls(
+    "data/",
+    glob = "*.parquet",
+    invert = TRUE
+  )
+)
+
+rm(list = ls())
+
+```
+
+
+# Descriptive Analysis
+
+Now we have a single table to start exploring! Lets begin with some descriptive analysis. We will check what are the LULC of the transects of the study.
+
+
+```{r}
+
+data <- read_parquet(
+  file = "data/lulc_eco.parquet",
+  col_select = c("region", "transect_code", "land_useclass"),
+  as_data_frame = FALSE
+) %>%
+  distinct(region, transect_code, land_useclass) %>%
+  group_by(region) %>%
+  count(land_useclass) %>%
+  collect() %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(
+    id = row_number(),
+    n_label = paste("Observations:", n)
+  )
+  
+plot <- ggplot(data) +
+  facet_wrap_interactive(
+    interactive_on = "both",
+    vars(region),
+    labeller = labeller_interactive(
+      aes(
+        tooltip = paste("Total observations:", unique(data$total)),
+        data_id = region,
+      )
+    )
+  ) +
+  geom_col_interactive(
+    aes(
+      data_id = region,
+      x = n, 
+      y = land_useclass,
+      tooltip = n_label,
+      fill = n
+    )
+  ) +
+  scale_fill_gradient(
+    low = "#000000",
+    high = "#C0C0C0"
+  ) +
+  labs(y = "", x = "") +
+  theme_bw(base_family = "sans") +
+  theme(
+    text = element_text(size = 15, family = "Open Sans"),
+    axis.text.y = element_text(hjust = 0, margin = margin(r = 30)),
+    strip.background = element_rect_interactive(),
+    legend.position = ""
+  )
+
+girafe(
+  ggobj = plot, 
+  options = list(
+    opts_tooltip(
+      css = "background-color:white;color:black;padding:5px;border-radius:2px;"
+    ),
+    opts_hover_inv(css = "opacity:0.5;"),
+    opts_hover(
+      girafe_css(
+        css = "",
+        area = "stroke:black;cursor:pointer;r:5px;"
+      )
+    ),
+    opts_toolbar(saveaspng = FALSE),
+    fonts = list(sans = "Open Sans")
+  )
+)
+
+```
+
+
+Now we will check the species numbers
+
+
+```{r}
+
+data <- 
+  read_parquet(
+    file = "data/lulc_eco.parquet",
+    col_select = c(
+      "region", "transect_code", "land_useclass",
+      "specie", "number", "specie_type"
+    )
+  ) %>%
+  mutate(number = if_else(number > 0, 1, 0)) %>%
+  group_by(region, land_useclass, specie_type) %>%
+  summarise(richness = sum(number, na.rm = TRUE), .groups = "drop") %>%
+  group_by(region, land_useclass) %>%
+  mutate(total = sum(richness, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(
+    id = row_number(),
+    richness_label = glue(
+      "{land_useclass} \n",
+      "{specie_type} \n",
+      "Number of species: {richness}"
+    )
+  )
+
+plot <- ggplot(data) +
+  facet_wrap(vars(region)) +
+  geom_tile_interactive(
+    aes(
+      data_id = id,
+      x = specie_type,
+      y = land_useclass,
+      fill = sqrt(richness),
+      tooltip = richness_label
+    )
+  ) +
+  scale_fill_gradient(
+    low = "#000000",
+    high = "#C0C0C0"
+  ) +
+  labs(y = "", x = "") +
+  theme_bw(base_family = "sans") +
+  theme(
+    text = element_text(size = 15, family = "Open Sans"),
+    axis.text.y = element_text(
+      hjust = 1, vjust = 0.5, margin = margin(r = 20), angle = 45
+    ),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+    legend.position = "",
+    panel.grid = element_blank()
+  )
+
+girafe(
+  ggobj = plot, 
+  options = list(
+    opts_tooltip(
+      css = "background-color:white;color:black;padding:5px;border-radius:2px;"
+    ),
+    opts_hover_inv(css = "opacity:0.5;"),
+    opts_hover(
+      girafe_css(
+        css = "stroke:black;cursor:pointer;r:5px;",
+      )
+    ),
+    opts_toolbar(saveaspng = FALSE),
+    fonts = list(sans = "Open Sans")
+  )
+)
+
+```
+

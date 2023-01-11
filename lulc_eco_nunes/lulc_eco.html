@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.313">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hugo Tameirão Seixas">
+
+<title>Exploring: Linking land-use and land-cover transitions to their ecological impact in the Amazon</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="lulc_eco_files/libs/clipboard/clipboard.min.js"></script>
+<script src="lulc_eco_files/libs/quarto-html/quarto.js"></script>
+<script src="lulc_eco_files/libs/quarto-html/popper.min.js"></script>
+<script src="lulc_eco_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="lulc_eco_files/libs/quarto-html/anchor.min.js"></script>
+<link href="lulc_eco_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="lulc_eco_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="lulc_eco_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="lulc_eco_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="lulc_eco_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+<script src="lulc_eco_files/libs/htmlwidgets-1.6.1/htmlwidgets.js"></script>
+<script src="lulc_eco_files/libs/d3-bundle-5.16.0/d3-bundle.min.js"></script>
+<script src="lulc_eco_files/libs/d3-lasso-0.0.5/d3-lasso.min.js"></script>
+<script src="lulc_eco_files/libs/save-svg-as-png-1.4.17/save-svg-as-png.min.js"></script>
+<script src="lulc_eco_files/libs/flatbush-4.0.0/flatbush.min.js"></script>
+<link href="lulc_eco_files/libs/ggiraphjs-0.4.6/ggiraphjs.min.css" rel="stylesheet">
+<script src="lulc_eco_files/libs/ggiraphjs-0.4.6/ggiraphjs.min.js"></script>
+<script src="lulc_eco_files/libs/girafe-binding-0.8.5/girafe.js"></script>
+<link href="lulc_eco_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="lulc_eco_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#download-and-organize-data" id="toc-download-and-organize-data" class="nav-link" data-scroll-target="#download-and-organize-data">Download and organize data</a></li>
+  <li><a href="#descriptive-analysis" id="toc-descriptive-analysis" class="nav-link" data-scroll-target="#descriptive-analysis">Descriptive Analysis</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Exploring: Linking land-use and land-cover transitions to their ecological impact in the Amazon</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Hugo Tameirão Seixas </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+<div>
+  <div class="abstract">
+    <div class="abstract-title">Abstract</div>
+    Lets explore data on the impacts of land use transitions over ecosystem services! I will explore aplication of predctive models over this data.
+  </div>
+</div>
+
+</header>
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>This exploration exercise will use data from the paper “Linking land-use and land-cover transitions to their ecological impact in the Amazon”.</p>
+<p>Here are the packages used in this exercise:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arrow)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(curl)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glue)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fs)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggiraph)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="download-and-organize-data" class="level1">
+<h1>Download and organize data</h1>
+<p>Lets download the data! I am going to download the data from Zenodo, than open it in the local machine and keep only the files of interest.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>file_name <span class="ot">&lt;-</span> <span class="st">"data/LULC_transitions-v1.1.zip"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">curl_download</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">url =</span> <span class="fu">glue</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"https://zenodo.org/record/6518744/files/"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"cassioalencarnunes/LULC_transitions-v1.1.zip?download=1"</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">destfile =</span> file_name</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">unzip</span>(</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">zipfile =</span> file_name,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">exdir =</span> <span class="st">"data/"</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>data_files <span class="ot">&lt;-</span> </span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir_ls</span>(</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">path =</span> <span class="st">"data/cassioalencarnunes-LULC_transitions-c501bd5/Data/"</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="fu">file_move</span>(<span class="at">path =</span> data_files, <span class="at">new_path =</span> <span class="st">"data/"</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="fu">dir_delete</span>(<span class="at">path =</span> <span class="st">"data/cassioalencarnunes-LULC_transitions-c501bd5/"</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="fu">file_delete</span>(<span class="at">path =</span> <span class="st">"data/LULC_transitions-v1.1.zip"</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="fu">dir_info</span>(<span class="st">"data/"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(path, size)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["path"],"name":[1],"type":["fs_path"],"align":["right"]},{"label":["size"],"name":[2],"type":["fs_bytes"],"align":["right"]}],"data":[{"1":"data/Ants_PGM.txt","2":"123.96K"},{"1":"data/Ants_STM.txt","2":"147.23K"},{"1":"data/Bees_PGM.txt","2":"19.76K"},{"1":"data/Birds.txt","2":"352.92K"},{"1":"data/Carbon_all_PGM.txt","2":"9.13K"},{"1":"data/Carbon_all_STM.txt","2":"7.43K"},{"1":"data/Dung_beetles.txt","2":"107.26K"},{"1":"data/Lianas_PGM.txt","2":"89.05K"},{"1":"data/Lianas_STM.txt","2":"79.01K"},{"1":"data/Saplings_PGM.txt","2":"298.53K"},{"1":"data/Saplings_STM.txt","2":"292.37K"},{"1":"data/Soil_PGM.csv","2":"16.88K"},{"1":"data/Soil_STM.csv","2":"13.7K"},{"1":"data/Transect_classification.csv","2":"11.27K"},{"1":"data/Transition_rates.txt","2":"286"},{"1":"data/Trees_PGM.txt","2":"256.31K"},{"1":"data/Trees_STM.txt","2":"260.93K"},{"1":"data/data_all_joined.csv","2":"58.49K"},{"1":"data/data_rich_forest_sp.csv","2":"29.82K"},{"1":"data/environment.csv","2":"26.39K"},{"1":"data/environment_all.txt","2":"124.01K"},{"1":"data/lulc_eco.parquet","2":"346.47K"},{"1":"data/transitions_rates_MapBiomas.csv","2":"21.03K"},{"1":"data/transitions_rates_Matricardi.csv","2":"868"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>I will start opening the table files and organize them into a single table. I will start with the transect classification data, which holds data of two regions, STM ( municipalities of Santarém, Belterra, and Mojuí-dos-Campos) and PGM (municipality of Parangominas):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>tr_class <span class="ot">&lt;-</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_delim</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="st">"data/Transect_classification.csv"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_select =</span> <span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">6</span>), <span class="co"># Remove unnamed id column</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_repair =</span> <span class="sc">~</span> </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_replace</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">string =</span> <span class="fu">tolower</span>(.), <span class="co"># I prefer everything in lowercase</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">pattern =</span> <span class="st">"-"</span>, <span class="co"># These traces are problematic </span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">replacement =</span> <span class="st">"_"</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      ), </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_types =</span> <span class="st">"_ccccc"</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tr_class)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["region"],"name":[1],"type":["chr"],"align":["left"]},{"label":["catchment"],"name":[2],"type":["chr"],"align":["left"]},{"label":["transect"],"name":[3],"type":["chr"],"align":["left"]},{"label":["transect_code"],"name":[4],"type":["chr"],"align":["left"]},{"label":["lu_uf"],"name":[5],"type":["chr"],"align":["left"]}],"data":[{"1":"STM","2":"103","3":"1","4":"103_1","5":"AP"},{"1":"STM","2":"103","3":"2","4":"103_2","5":"SFyoung"},{"1":"STM","2":"103","3":"3","4":"103_3","5":"SFold"},{"1":"STM","2":"103","3":"4","4":"103_4","5":"PA"},{"1":"STM","2":"103","3":"5","4":"103_5","5":"SFyoung"},{"1":"STM","2":"103","3":"7","4":"103_7","5":"AP"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>I will also use the table with some environmental variables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>envr <span class="ot">&lt;-</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_delim</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="st">"data/environment_all.txt"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_select =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">37</span><span class="sc">:</span><span class="dv">38</span>, <span class="dv">49</span><span class="sc">:</span><span class="dv">50</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_repair =</span> <span class="sc">~</span> </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_replace</span>(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">string =</span> <span class="fu">tolower</span>(.), <span class="co"># I prefer everything in lowercase</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">pattern =</span> <span class="st">"-"</span>, <span class="co"># These traces are problematic </span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">replacement =</span> <span class="st">"_"</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>      ), </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_types =</span> <span class="st">"cccc"</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">land_useclass =</span> </span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_replace</span>( <span class="co"># Fix land use variable </span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">string =</span> land_useclass, </span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">pattern =</span> <span class="st">"Mechanisd_agriculture"</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">replacement =</span> <span class="st">"Mechanized_agriculture"</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(envr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["region"],"name":[1],"type":["chr"],"align":["left"]},{"label":["catchment"],"name":[2],"type":["chr"],"align":["left"]},{"label":["transect"],"name":[3],"type":["chr"],"align":["left"]},{"label":["transectcode"],"name":[4],"type":["chr"],"align":["left"]},{"label":["utm_x"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["utm_y"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["land_useclass"],"name":[7],"type":["chr"],"align":["left"]},{"label":["forest_type"],"name":[8],"type":["chr"],"align":["left"]},{"label":["productiontype"],"name":[9],"type":["chr"],"align":["left"]},{"label":["lu_ft_code"],"name":[10],"type":["chr"],"align":["left"]},{"label":["silt_all"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["clay_all"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["elev_mean"],"name":[13],"type":["dbl"],"align":["right"]},{"label":["slope_mean"],"name":[14],"type":["dbl"],"align":["right"]}],"data":[{"1":"STM","2":"103","3":"1","4":"103_1","5":"730352","6":"9705652","7":"Abandoned_plantation","8":"NA","9":"NA","10":"AP","11":"194.0714","12":"782.8571","13":"168.359","14":"1.25086"},{"1":"STM","2":"103","3":"2","4":"103_2","5":"729806","6":"9701458","7":"Secondary_forest","8":"Intermediate","9":"NA","10":"SFinter","11":"176.1333","12":"794.6667","13":"150.581","14":"1.00192"},{"1":"STM","2":"103","3":"3","4":"103_3","5":"729758","6":"9703154","7":"Secondary_forest","8":"Old","9":"NA","10":"Sfold","11":"146.2000","12":"818.6667","13":"170.672","14":"2.23298"},{"1":"STM","2":"103","3":"4","4":"103_4","5":"732165","6":"9703776","7":"Pasture","8":"NA","9":"NA","10":"PA","11":"165.7333","12":"813.3333","13":"168.124","14":"2.40037"},{"1":"STM","2":"103","3":"5","4":"103_5","5":"733822","6":"9706479","7":"Secondary_forest","8":"Intermediate","9":"NA","10":"SFinter","11":"200.8000","12":"773.3333","13":"169.071","14":"1.20009"},{"1":"STM","2":"103","3":"7","4":"103_7","5":"729736","6":"9709990","7":"Abandoned_plantation","8":"NA","9":"NA","10":"AP","11":"302.2667","12":"458.6667","13":"186.090","14":"1.61498"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>soil <span class="ot">&lt;-</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_df</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">.x =</span> <span class="fu">dir_ls</span>(<span class="at">path =</span> <span class="st">"data/"</span>, <span class="at">regexp =</span> <span class="st">"Soil"</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">.f =</span> <span class="cf">function</span>(t) {</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      table <span class="ot">&lt;-</span> </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">read_delim</span>(</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">file =</span> t,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">col_select =</span> <span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">6</span>),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">name_repair =</span> <span class="sc">~</span> <span class="fu">tolower</span>(.),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">col_types =</span> <span class="st">"_cccc"</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(soil)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["region"],"name":[1],"type":["chr"],"align":["left"]},{"label":["catchment"],"name":[2],"type":["chr"],"align":["left"]},{"label":["transect"],"name":[3],"type":["chr"],"align":["left"]},{"label":["transect_code"],"name":[4],"type":["chr"],"align":["left"]},{"label":["ph"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"PGM","2":"44","3":"12","4":"44_12","5":"5.253333"},{"1":"PGM","2":"44","3":"15","4":"44_15","5":"5.400000"},{"1":"PGM","2":"44","3":"2","4":"44_2","5":"5.000000"},{"1":"PGM","2":"44","3":"3","4":"44_3","5":"5.277778"},{"1":"PGM","2":"44","3":"4","4":"44_4","5":"4.277778"},{"1":"PGM","2":"44","3":"5","4":"44_5","5":"4.606667"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>carbon <span class="ot">&lt;-</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_df</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">.x =</span> <span class="fu">dir_ls</span>(<span class="at">path =</span> <span class="st">"data/"</span>, <span class="at">regexp =</span> <span class="st">"Carbon"</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">.f =</span> <span class="cf">function</span>(t) {</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      table <span class="ot">&lt;-</span> </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">read_delim</span>(</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">file =</span> t,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">name_repair =</span> <span class="sc">~</span> <span class="fu">tolower</span>(.), <span class="co"># I prefer everything in lowercase</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">col_types =</span> <span class="st">"c"</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">region =</span> <span class="fu">str_extract</span>(t, <span class="st">"PGM|STM"</span>))</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(carbon)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["transect_code"],"name":[1],"type":["chr"],"align":["left"]},{"label":["aboveground_pool"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["litter_pool"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["dead_pool"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["soil_pool_new"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["region"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"100_1","2":"0.000000","3":"5.579300","4":"4.190460","5":"52.73","6":"PGM"},{"1":"100_10","2":"7.432500","3":"4.861654","4":"1.456190","5":"42.45","6":"PGM"},{"1":"100_2","2":"6.864978","3":"4.603716","4":"8.465087","5":"98.40","6":"PGM"},{"1":"100_3","2":"71.327179","3":"7.368431","4":"30.337342","5":"83.86","6":"PGM"},{"1":"100_4","2":"0.000000","3":"8.173004","4":"21.887520","5":"68.16","6":"PGM"},{"1":"100_5","2":"113.901813","3":"11.462355","4":"39.466322","5":"62.28","6":"PGM"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>There is a lot of tables containing biodiversity variables to be analysed. Since they are stored in many different tables, I will map the operation using the <strong>purrr</strong> package, in which we will apply a function to every biodiversity table. The function will open the tables, pivot them to a longer format (there are many columns indicating a certain specie), and than create a new column indicating what is the group that the species are part of. There was a weird column in the dung beetle table, named “aaaaaa”, I removed it just as the author of the paper.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create list of files that contains tables with biodiversity data</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>tables_list <span class="ot">&lt;-</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir_ls</span>(<span class="at">path =</span> <span class="st">"data/"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">str_subset</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">pattern =</span> <span class="fu">regex</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"ants|trees|bees|birds|dung_beetles|liana|saplings"</span>, </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">ignore_case =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge tables in a single table</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>biodiversity <span class="ot">&lt;-</span> <span class="fu">map_df</span>(</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">.x =</span> tables_list,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">.f =</span> <span class="cf">function</span>(t) {</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    table <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">file =</span> t,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">name_repair =</span> <span class="sc">~</span> <span class="fu">tolower</span>(.),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">col_select =</span> <span class="sc">!</span><span class="fu">matches</span>(<span class="st">"aaaaa"</span>), <span class="co"># Remove weird column</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">col_types =</span> <span class="st">"cccc"</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    table <span class="sc">%&gt;%</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pivot_longer</span>(</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"sp"</span>),</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_to =</span> <span class="st">"specie"</span>,</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_to =</span> <span class="st">"number"</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">specie_type =</span> <span class="fu">str_remove_all</span>(</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>          <span class="at">string =</span> t, </span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>          <span class="at">pattern =</span> <span class="st">"data/|_|STM|PGM|.txt"</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(biodiversity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["region"],"name":[1],"type":["chr"],"align":["left"]},{"label":["catchment"],"name":[2],"type":["chr"],"align":["left"]},{"label":["transect"],"name":[3],"type":["chr"],"align":["left"]},{"label":["transect_code"],"name":[4],"type":["chr"],"align":["left"]},{"label":["specie"],"name":[5],"type":["chr"],"align":["left"]},{"label":["number"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["specie_type"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"PGM","2":"100","3":"1","4":"100_1","5":"sp1","6":"0","7":"Ants"},{"1":"PGM","2":"100","3":"1","4":"100_1","5":"sp2","6":"0","7":"Ants"},{"1":"PGM","2":"100","3":"1","4":"100_1","5":"sp3","6":"0","7":"Ants"},{"1":"PGM","2":"100","3":"1","4":"100_1","5":"sp4","6":"0","7":"Ants"},{"1":"PGM","2":"100","3":"1","4":"100_1","5":"sp5","6":"0","7":"Ants"},{"1":"PGM","2":"100","3":"1","4":"100_1","5":"sp6","6":"0","7":"Ants"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>full_data <span class="ot">&lt;-</span> tr_class <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> envr, </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"region"</span>, <span class="st">"catchment"</span>, <span class="st">"transect"</span>, <span class="st">"transect_code"</span> <span class="ot">=</span> <span class="st">"transectcode"</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> soil, </span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"region"</span>, <span class="st">"catchment"</span>, <span class="st">"transect"</span>, <span class="st">"transect_code"</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> carbon, </span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"region"</span>, <span class="st">"transect_code"</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> biodiversity, </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"region"</span>, <span class="st">"catchment"</span>, <span class="st">"transect"</span>, <span class="st">"transect_code"</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">land_useclass =</span> <span class="fu">str_replace_all</span>( <span class="co"># Make LULC names more beautiful</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">string =</span> land_useclass, </span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">pattern =</span> <span class="st">"-|_"</span>,</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">replacement =</span> <span class="st">" "</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="fu">write_parquet</span>(</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> full_data,</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">sink =</span> <span class="st">"data/lulc_eco.parquet"</span>,</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">version =</span> <span class="st">"latest"</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="fu">file_delete</span>(</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">path =</span> <span class="fu">dir_ls</span>(</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    <span class="st">"data/"</span>,</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">glob =</span> <span class="st">"*.parquet"</span>,</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">invert =</span> <span class="cn">TRUE</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="descriptive-analysis" class="level1">
+<h1>Descriptive Analysis</h1>
+<p>Now we have a single table to start exploring! Lets begin with some descriptive analysis. We will check what are the LULC of the transects of the study.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_parquet</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"data/lulc_eco.parquet"</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_select =</span> <span class="fu">c</span>(<span class="st">"region"</span>, <span class="st">"transect_code"</span>, <span class="st">"land_useclass"</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">as_data_frame =</span> <span class="cn">FALSE</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(region, transect_code, land_useclass) <span class="sc">%&gt;%</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">%&gt;%</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(land_useclass) <span class="sc">%&gt;%</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total =</span> <span class="fu">sum</span>(n)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">row_number</span>(),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_label =</span> <span class="fu">paste</span>(<span class="st">"Observations:"</span>, n)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data) <span class="sc">+</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap_interactive</span>(</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">interactive_on =</span> <span class="st">"both"</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">vars</span>(region),</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller_interactive</span>(</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">tooltip =</span> <span class="fu">paste</span>(<span class="st">"Total observations:"</span>, <span class="fu">unique</span>(data<span class="sc">$</span>total)),</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">data_id =</span> region,</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col_interactive</span>(</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>      <span class="at">data_id =</span> region,</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> n, </span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> land_useclass,</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>      <span class="at">tooltip =</span> n_label,</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> n</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> <span class="st">"#000000"</span>,</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="st">"#C0C0C0"</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">""</span>, <span class="at">x =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>(<span class="at">base_family =</span> <span class="st">"sans"</span>) <span class="sc">+</span></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>, <span class="at">family =</span> <span class="st">"Open Sans"</span>),</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">30</span>)),</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.background =</span> <span class="fu">element_rect_interactive</span>(),</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">""</span></span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a><span class="fu">girafe</span>(</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>  <span class="at">ggobj =</span> plot, </span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>  <span class="at">options =</span> <span class="fu">list</span>(</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_tooltip</span>(</span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>      <span class="at">css =</span> <span class="st">"background-color:white;color:black;padding:5px;border-radius:2px;"</span></span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_hover_inv</span>(<span class="at">css =</span> <span class="st">"opacity:0.5;"</span>),</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_hover</span>(</span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>      <span class="fu">girafe_css</span>(</span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>        <span class="at">css =</span> <span class="st">""</span>,</span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>        <span class="at">area =</span> <span class="st">"stroke:black;cursor:pointer;r:5px;"</span></span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_toolbar</span>(<span class="at">saveaspng =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">fonts =</span> <span class="fu">list</span>(<span class="at">sans =</span> <span class="st">"Open Sans"</span>)</span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="girafe html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-ab17cfd1b161c95457cf" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-ab17cfd1b161c95457cf">{"x":{"html":"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' class='ggiraph-svg' role='img' id='svg_f2015275_586e_498f_9946_2d754b87027b' viewBox='0 0 504 360'>\n <defs id='svg_f2015275_586e_498f_9946_2d754b87027b_defs'>\n  <clipPath id='svg_f2015275_586e_498f_9946_2d754b87027b_c1'>\n   <rect x='0' y='0' width='504' height='360'/>\n  <\/clipPath>\n  <clipPath id='svg_f2015275_586e_498f_9946_2d754b87027b_c2'>\n   <rect x='188.84' y='25.69' width='152.1' height='295.39'/>\n  <\/clipPath>\n  <clipPath id='svg_f2015275_586e_498f_9946_2d754b87027b_c3'>\n   <rect x='346.42' y='25.69' width='152.1' height='295.39'/>\n  <\/clipPath>\n  <clipPath id='svg_f2015275_586e_498f_9946_2d754b87027b_c4'>\n   <rect x='188.84' y='5.48' width='152.1' height='20.22'/>\n  <\/clipPath>\n  <clipPath id='svg_f2015275_586e_498f_9946_2d754b87027b_c5'>\n   <rect x='346.42' y='5.48' width='152.1' height='20.22'/>\n  <\/clipPath>\n <\/defs>\n <g id='svg_f2015275_586e_498f_9946_2d754b87027b_rootg' class='ggiraph-svg-rootg'>\n  <g clip-path='url(#svg_f2015275_586e_498f_9946_2d754b87027b_c1)'>\n   <rect x='0' y='0' width='504' height='360' fill='#FFFFFF' fill-opacity='1' stroke='#FFFFFF' stroke-opacity='1' stroke-width='0.75' stroke-linejoin='round' stroke-linecap='round' class='ggiraph-svg-bg'/>\n   <rect x='0' y='0' width='504' height='360' fill='#FFFFFF' fill-opacity='1' stroke='#FFFFFF' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n  <\/g>\n  <g clip-path='url(#svg_f2015275_586e_498f_9946_2d754b87027b_c2)'>\n   <rect x='188.84' y='25.69' width='152.1' height='295.39' fill='#FFFFFF' fill-opacity='1' stroke='none'/>\n   <polyline points='214.14,321.09 214.14,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='250.92,321.09 250.92,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='287.69,321.09 287.69,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='324.47,321.09 324.47,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,299.47 340.94,299.47' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,263.45 340.94,263.45' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,227.43 340.94,227.43' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,191.40 340.94,191.40' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,155.38 340.94,155.38' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,119.36 340.94,119.36' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,83.33 340.94,83.33' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='188.84,47.31 340.94,47.31' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='195.76,321.09 195.76,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='232.53,321.09 232.53,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='269.31,321.09 269.31,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='306.08,321.09 306.08,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e1' x='195.76' y='67.12' width='29.42' height='32.42' fill='#272727' fill-opacity='1' stroke='none' data-id='PGM' title='Observations: 20'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e2' x='195.76' y='139.17' width='138.27' height='32.42' fill='#C0C0C0' fill-opacity='1' stroke='none' data-id='PGM' title='Observations: 94'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e3' x='195.76' y='175.19' width='72.08' height='32.42' fill='#5E5E5E' fill-opacity='1' stroke='none' data-id='PGM' title='Observations: 49'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e4' x='195.76' y='283.26' width='1.47' height='32.42' fill='#000000' fill-opacity='1' stroke='none' data-id='PGM' title='Observations: 1'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e5' x='195.76' y='211.22' width='14.71' height='32.42' fill='#171717' fill-opacity='1' stroke='none' data-id='PGM' title='Observations: 10'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e6' x='195.76' y='103.15' width='11.77' height='32.42' fill='#131313' fill-opacity='1' stroke='none' data-id='PGM' title='Observations: 8'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e7' x='195.76' y='31.1' width='1.47' height='32.42' fill='#000000' fill-opacity='1' stroke='none' data-id='PGM' title='Observations: 1'/>\n   <rect x='188.84' y='25.69' width='152.1' height='295.39' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n  <\/g>\n  <g clip-path='url(#svg_f2015275_586e_498f_9946_2d754b87027b_c3)'>\n   <rect x='346.42' y='25.69' width='152.1' height='295.39' fill='#FFFFFF' fill-opacity='1' stroke='none'/>\n   <polyline points='371.72,321.09 371.72,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='408.50,321.09 408.50,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='445.27,321.09 445.27,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='482.05,321.09 482.05,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='0.53' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,299.47 498.52,299.47' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,263.45 498.52,263.45' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,227.43 498.52,227.43' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,191.40 498.52,191.40' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,155.38 498.52,155.38' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,119.36 498.52,119.36' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,83.33 498.52,83.33' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='346.42,47.31 498.52,47.31' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='353.34,321.09 353.34,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='390.11,321.09 390.11,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='426.88,321.09 426.88,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='463.66,321.09 463.66,25.69' fill='none' stroke='#EBEBEB' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e8' x='353.34' y='283.26' width='4.41' height='32.42' fill='#060606' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 3'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e9' x='353.34' y='67.12' width='55.9' height='32.42' fill='#494949' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 38'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e10' x='353.34' y='175.19' width='33.83' height='32.42' fill='#2D2D2D' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 23'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e11' x='353.34' y='211.22' width='23.54' height='32.42' fill='#212121' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 16'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e12' x='353.34' y='139.17' width='98.56' height='32.42' fill='#848484' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 67'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e13' x='353.34' y='247.24' width='5.88' height='32.42' fill='#090909' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 4'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e14' x='353.34' y='31.1' width='4.41' height='32.42' fill='#060606' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 3'/>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e15' x='353.34' y='103.15' width='2.94' height='32.42' fill='#030303' fill-opacity='1' stroke='none' data-id='STM' title='Observations: 2'/>\n   <rect x='346.42' y='25.69' width='152.1' height='295.39' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n  <\/g>\n  <g clip-path='url(#svg_f2015275_586e_498f_9946_2d754b87027b_c4)'>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e16' x='188.84' y='5.48' width='152.1' height='20.22' fill='#D9D9D9' fill-opacity='1' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round' data-id='PGM' title='Total observations: 156'/>\n   <text id='svg_f2015275_586e_498f_9946_2d754b87027b_e17' x='251.49' y='19.87' font-size='9pt' font-family='Open Sans' fill='#1A1A1A' fill-opacity='1' data-id='PGM' title='Total observations: 156'>PGM<\/text>\n  <\/g>\n  <g clip-path='url(#svg_f2015275_586e_498f_9946_2d754b87027b_c5)'>\n   <rect id='svg_f2015275_586e_498f_9946_2d754b87027b_e18' x='346.42' y='5.48' width='152.1' height='20.22' fill='#D9D9D9' fill-opacity='1' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round' data-id='STM' title='Total observations: 183'/>\n   <text id='svg_f2015275_586e_498f_9946_2d754b87027b_e19' x='410.44' y='19.87' font-size='9pt' font-family='Open Sans' fill='#1A1A1A' fill-opacity='1' data-id='STM' title='Total observations: 183'>STM<\/text>\n  <\/g>\n  <g clip-path='url(#svg_f2015275_586e_498f_9946_2d754b87027b_c1)'>\n   <polyline points='195.76,323.83 195.76,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='232.53,323.83 232.53,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='269.31,323.83 269.31,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='306.08,323.83 306.08,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <text x='192.33' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>0<\/text>\n   <text x='225.67' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>25<\/text>\n   <text x='262.44' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>50<\/text>\n   <text x='299.22' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>75<\/text>\n   <polyline points='353.34,323.83 353.34,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='390.11,323.83 390.11,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='426.88,323.83 426.88,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='463.66,323.83 463.66,321.09' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <text x='349.9' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>0<\/text>\n   <text x='383.25' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>25<\/text>\n   <text x='420.02' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>50<\/text>\n   <text x='456.8' y='334.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>75<\/text>\n   <text x='22.53' y='303.76' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Abandoned plantation<\/text>\n   <text x='22.53' y='267.73' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Fruiticulture<\/text>\n   <text x='22.53' y='231.71' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Mechanized agriculture<\/text>\n   <text x='22.53' y='195.69' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Pasture<\/text>\n   <text x='22.53' y='159.66' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Primary forest<\/text>\n   <text x='22.53' y='123.64' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Reforestation<\/text>\n   <text x='22.53' y='87.62' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Secondary forest<\/text>\n   <text x='22.53' y='51.59' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Small holder agriculture<\/text>\n   <polyline points='186.10,299.47 188.84,299.47' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.10,263.45 188.84,263.45' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.10,227.43 188.84,227.43' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.10,191.40 188.84,191.40' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.10,155.38 188.84,155.38' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.10,119.36 188.84,119.36' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.10,83.33 188.84,83.33' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.10,47.31 188.84,47.31' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n  <\/g>\n <\/g>\n<\/svg>","js":null,"uid":"svg_f2015275_586e_498f_9946_2d754b87027b","ratio":1.4,"settings":{"tooltip":{"css":".tooltip_SVGID_ { background-color:white;color:black;padding:5px;border-radius:2px; ; position:absolute;pointer-events:none;z-index:999;}","placement":"doc","opacity":0.9,"offx":10,"offy":0,"use_cursor_pos":true,"use_fill":false,"use_stroke":false,"delay_over":200,"delay_out":500},"hover":{"css":"\nrect.hover_data_SVGID_, polygon.hover_data_SVGID_, path.hover_data_SVGID_ { stroke:black;cursor:pointer;r:5px; }","reactive":false,"nearest_distance":null},"hover_inv":{"css":".hover_inv_SVGID_ { opacity:0.5; }"},"hover_key":{"css":".hover_key_SVGID_ { fill:orange;stroke:black;cursor:pointer; }\ntext.hover_key_SVGID_ { stroke:none;fill:orange; }\ncircle.hover_key_SVGID_ { fill:orange;stroke:black; }\nline.hover_key_SVGID_, polyline.hover_key_SVGID_ { fill:none;stroke:orange; }\nrect.hover_key_SVGID_, polygon.hover_key_SVGID_, path.hover_key_SVGID_ { fill:orange;stroke:none; }\nimage.hover_key_SVGID_ { stroke:orange; }","reactive":true},"hover_theme":{"css":".hover_theme_SVGID_ { fill:orange;stroke:black;cursor:pointer; }\ntext.hover_theme_SVGID_ { stroke:none;fill:orange; }\ncircle.hover_theme_SVGID_ { fill:orange;stroke:black; }\nline.hover_theme_SVGID_, polyline.hover_theme_SVGID_ { fill:none;stroke:orange; }\nrect.hover_theme_SVGID_, polygon.hover_theme_SVGID_, path.hover_theme_SVGID_ { fill:orange;stroke:none; }\nimage.hover_theme_SVGID_ { stroke:orange; }","reactive":true},"select":{"css":".select_data_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_data_SVGID_ { stroke:none;fill:red; }\ncircle.select_data_SVGID_ { fill:red;stroke:black; }\nline.select_data_SVGID_, polyline.select_data_SVGID_ { fill:none;stroke:red; }\nrect.select_data_SVGID_, polygon.select_data_SVGID_, path.select_data_SVGID_ { fill:red;stroke:none; }\nimage.select_data_SVGID_ { stroke:red; }","type":"multiple","only_shiny":true,"selected":[]},"select_inv":{"css":""},"select_key":{"css":".select_key_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_key_SVGID_ { stroke:none;fill:red; }\ncircle.select_key_SVGID_ { fill:red;stroke:black; }\nline.select_key_SVGID_, polyline.select_key_SVGID_ { fill:none;stroke:red; }\nrect.select_key_SVGID_, polygon.select_key_SVGID_, path.select_key_SVGID_ { fill:red;stroke:none; }\nimage.select_key_SVGID_ { stroke:red; }","type":"single","only_shiny":true,"selected":[]},"select_theme":{"css":".select_theme_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_theme_SVGID_ { stroke:none;fill:red; }\ncircle.select_theme_SVGID_ { fill:red;stroke:black; }\nline.select_theme_SVGID_, polyline.select_theme_SVGID_ { fill:none;stroke:red; }\nrect.select_theme_SVGID_, polygon.select_theme_SVGID_, path.select_theme_SVGID_ { fill:red;stroke:none; }\nimage.select_theme_SVGID_ { stroke:red; }","type":"single","only_shiny":true,"selected":[]},"zoom":{"min":1,"max":1,"duration":300},"toolbar":{"position":"topright","pngname":"diagram","tooltips":null,"hidden":"saveaspng","delay_over":200,"delay_out":500},"sizing":{"rescale":true,"width":1}}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Now we will check the species numbers</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_parquet</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="st">"data/lulc_eco.parquet"</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">col_select =</span> <span class="fu">c</span>(</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">"region"</span>, <span class="st">"transect_code"</span>, <span class="st">"land_useclass"</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"specie"</span>, <span class="st">"number"</span>, <span class="st">"specie_type"</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">number =</span> <span class="fu">if_else</span>(number <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region, land_useclass, specie_type) <span class="sc">%&gt;%</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">richness =</span> <span class="fu">sum</span>(number, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region, land_useclass) <span class="sc">%&gt;%</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total =</span> <span class="fu">sum</span>(richness, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">row_number</span>(),</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">richness_label =</span> <span class="fu">glue</span>(</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>      <span class="st">"{land_useclass} </span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>      <span class="st">"{specie_type} </span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Number of species: {richness}"</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data) <span class="sc">+</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(region)) <span class="sc">+</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile_interactive</span>(</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">data_id =</span> id,</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> specie_type,</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> land_useclass,</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> <span class="fu">sqrt</span>(richness),</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>      <span class="at">tooltip =</span> richness_label</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> <span class="st">"#000000"</span>,</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="st">"#C0C0C0"</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">""</span>, <span class="at">x =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>(<span class="at">base_family =</span> <span class="st">"sans"</span>) <span class="sc">+</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>, <span class="at">family =</span> <span class="st">"Open Sans"</span>),</span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>      <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">20</span>), <span class="at">angle =</span> <span class="dv">45</span></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="dv">1</span>),</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">""</span>,</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a><span class="fu">girafe</span>(</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>  <span class="at">ggobj =</span> plot, </span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>  <span class="at">options =</span> <span class="fu">list</span>(</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_tooltip</span>(</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>      <span class="at">css =</span> <span class="st">"background-color:white;color:black;padding:5px;border-radius:2px;"</span></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_hover_inv</span>(<span class="at">css =</span> <span class="st">"opacity:0.5;"</span>),</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_hover</span>(</span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>      <span class="fu">girafe_css</span>(</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>        <span class="at">css =</span> <span class="st">"stroke:black;cursor:pointer;r:5px;"</span>,</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>    <span class="fu">opts_toolbar</span>(<span class="at">saveaspng =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">fonts =</span> <span class="fu">list</span>(<span class="at">sans =</span> <span class="st">"Open Sans"</span>)</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="girafe html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-fcdf436a704f276e38b8" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-fcdf436a704f276e38b8">{"x":{"html":"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' class='ggiraph-svg' role='img' id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08' viewBox='0 0 504 360'>\n <defs id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_defs'>\n  <clipPath id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c1'>\n   <rect x='0' y='0' width='504' height='360'/>\n  <\/clipPath>\n  <clipPath id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c2'>\n   <rect x='147.82' y='25.69' width='172.61' height='248.82'/>\n  <\/clipPath>\n  <clipPath id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c3'>\n   <rect x='325.91' y='25.69' width='172.61' height='248.82'/>\n  <\/clipPath>\n  <clipPath id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c4'>\n   <rect x='147.82' y='5.48' width='172.61' height='20.22'/>\n  <\/clipPath>\n  <clipPath id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c5'>\n   <rect x='325.91' y='5.48' width='172.61' height='20.22'/>\n  <\/clipPath>\n <\/defs>\n <g id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_rootg' class='ggiraph-svg-rootg'>\n  <g clip-path='url(#svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c1)'>\n   <rect x='0' y='0' width='504' height='360' fill='#FFFFFF' fill-opacity='1' stroke='#FFFFFF' stroke-opacity='1' stroke-width='0.75' stroke-linejoin='round' stroke-linecap='round' class='ggiraph-svg-bg'/>\n   <rect x='0' y='0' width='504' height='360' fill='#FFFFFF' fill-opacity='1' stroke='#FFFFFF' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n  <\/g>\n  <g clip-path='url(#svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c2)'>\n   <rect x='147.82' y='25.69' width='172.61' height='248.82' fill='#FFFFFF' fill-opacity='1' stroke='none'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e1' x='150.22' y='241.13' width='23.97' height='30.34' fill='#0F0F0F' fill-opacity='1' stroke='none' data-id='1' title='Abandoned plantation &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 16'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e2' x='174.19' y='241.13' width='23.97' height='30.34' fill='#090909' fill-opacity='1' stroke='none' data-id='2' title='Abandoned plantation &amp;lt;br/&amp;gt;Bees &amp;lt;br/&amp;gt;Number of species: 5'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e3' x='222.14' y='241.13' width='23.97' height='30.34' fill='#0D0D0D' fill-opacity='1' stroke='none' data-id='3' title='Abandoned plantation &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 12'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e4' x='246.11' y='241.13' width='23.97' height='30.34' fill='#090909' fill-opacity='1' stroke='none' data-id='4' title='Abandoned plantation &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 5'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e5' x='270.09' y='241.13' width='23.97' height='30.34' fill='#0F0F0F' fill-opacity='1' stroke='none' data-id='5' title='Abandoned plantation &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 18'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e6' x='294.06' y='241.13' width='23.97' height='30.34' fill='#0B0B0B' fill-opacity='1' stroke='none' data-id='6' title='Abandoned plantation &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 8'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e7' x='150.22' y='180.45' width='23.97' height='30.34' fill='#202020' fill-opacity='1' stroke='none' data-id='7' title='Mechanized agriculture &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 140'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e8' x='174.19' y='180.45' width='23.97' height='30.34' fill='#121212' fill-opacity='1' stroke='none' data-id='8' title='Mechanized agriculture &amp;lt;br/&amp;gt;Bees &amp;lt;br/&amp;gt;Number of species: 26'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e9' x='198.17' y='180.45' width='23.97' height='30.34' fill='#1A1A1A' fill-opacity='1' stroke='none' data-id='9' title='Mechanized agriculture &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 77'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e10' x='222.14' y='180.45' width='23.97' height='30.34' fill='#181818' fill-opacity='1' stroke='none' data-id='10' title='Mechanized agriculture &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 63'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e11' x='246.11' y='180.45' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='11' title='Mechanized agriculture &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e12' x='270.09' y='180.45' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='12' title='Mechanized agriculture &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e13' x='294.06' y='180.45' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='13' title='Mechanized agriculture &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e14' x='150.22' y='150.1' width='23.97' height='30.34' fill='#484848' fill-opacity='1' stroke='none' data-id='14' title='Pasture &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 866'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e15' x='174.19' y='150.1' width='23.97' height='30.34' fill='#262626' fill-opacity='1' stroke='none' data-id='15' title='Pasture &amp;lt;br/&amp;gt;Bees &amp;lt;br/&amp;gt;Number of species: 206'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e16' x='198.17' y='150.1' width='23.97' height='30.34' fill='#434343' fill-opacity='1' stroke='none' data-id='16' title='Pasture &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 751'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e17' x='222.14' y='150.1' width='23.97' height='30.34' fill='#2E2E2E' fill-opacity='1' stroke='none' data-id='17' title='Pasture &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 333'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e18' x='246.11' y='150.1' width='23.97' height='30.34' fill='#070707' fill-opacity='1' stroke='none' data-id='18' title='Pasture &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 3'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e19' x='270.09' y='150.1' width='23.97' height='30.34' fill='#181818' fill-opacity='1' stroke='none' data-id='19' title='Pasture &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 61'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e20' x='294.06' y='150.1' width='23.97' height='30.34' fill='#0B0B0B' fill-opacity='1' stroke='none' data-id='20' title='Pasture &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 9'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e21' x='150.22' y='119.76' width='23.97' height='30.34' fill='#7D7D7D' fill-opacity='1' stroke='none' data-id='21' title='Primary forest &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 2536'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e22' x='174.19' y='119.76' width='23.97' height='30.34' fill='#3E3E3E' fill-opacity='1' stroke='none' data-id='22' title='Primary forest &amp;lt;br/&amp;gt;Bees &amp;lt;br/&amp;gt;Number of species: 621'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e23' x='198.17' y='119.76' width='23.97' height='30.34' fill='#A4A4A4' fill-opacity='1' stroke='none' data-id='23' title='Primary forest &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 4174'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e24' x='222.14' y='119.76' width='23.97' height='30.34' fill='#626262' fill-opacity='1' stroke='none' data-id='24' title='Primary forest &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 1592'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e25' x='246.11' y='119.76' width='23.97' height='30.34' fill='#575757' fill-opacity='1' stroke='none' data-id='25' title='Primary forest &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 1257'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e26' x='270.09' y='119.76' width='23.97' height='30.34' fill='#C0C0C0' fill-opacity='1' stroke='none' data-id='26' title='Primary forest &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 5548'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e27' x='294.06' y='119.76' width='23.97' height='30.34' fill='#B5B5B5' fill-opacity='1' stroke='none' data-id='27' title='Primary forest &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 4991'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e28' x='150.22' y='89.42' width='23.97' height='30.34' fill='#212121' fill-opacity='1' stroke='none' data-id='28' title='Reforestation &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 148'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e29' x='174.19' y='89.42' width='23.97' height='30.34' fill='#111111' fill-opacity='1' stroke='none' data-id='29' title='Reforestation &amp;lt;br/&amp;gt;Bees &amp;lt;br/&amp;gt;Number of species: 23'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e30' x='198.17' y='89.42' width='23.97' height='30.34' fill='#202020' fill-opacity='1' stroke='none' data-id='30' title='Reforestation &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 138'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e31' x='222.14' y='89.42' width='23.97' height='30.34' fill='#181818' fill-opacity='1' stroke='none' data-id='31' title='Reforestation &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 65'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e32' x='246.11' y='89.42' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='32' title='Reforestation &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e33' x='270.09' y='89.42' width='23.97' height='30.34' fill='#0A0A0A' fill-opacity='1' stroke='none' data-id='33' title='Reforestation &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 7'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e34' x='294.06' y='89.42' width='23.97' height='30.34' fill='#080808' fill-opacity='1' stroke='none' data-id='34' title='Reforestation &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 4'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e35' x='150.22' y='59.07' width='23.97' height='30.34' fill='#363636' fill-opacity='1' stroke='none' data-id='35' title='Secondary forest &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 462'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e36' x='174.19' y='59.07' width='23.97' height='30.34' fill='#232323' fill-opacity='1' stroke='none' data-id='36' title='Secondary forest &amp;lt;br/&amp;gt;Bees &amp;lt;br/&amp;gt;Number of species: 171'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e37' x='198.17' y='59.07' width='23.97' height='30.34' fill='#3A3A3A' fill-opacity='1' stroke='none' data-id='37' title='Secondary forest &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 546'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e38' x='222.14' y='59.07' width='23.97' height='30.34' fill='#2B2B2B' fill-opacity='1' stroke='none' data-id='38' title='Secondary forest &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 275'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e39' x='246.11' y='59.07' width='23.97' height='30.34' fill='#202020' fill-opacity='1' stroke='none' data-id='39' title='Secondary forest &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 137'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e40' x='270.09' y='59.07' width='23.97' height='30.34' fill='#3D3D3D' fill-opacity='1' stroke='none' data-id='40' title='Secondary forest &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 604'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e41' x='294.06' y='59.07' width='23.97' height='30.34' fill='#363636' fill-opacity='1' stroke='none' data-id='41' title='Secondary forest &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 469'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e42' x='150.22' y='28.73' width='23.97' height='30.34' fill='#131313' fill-opacity='1' stroke='none' data-id='42' title='Small holder agriculture &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 34'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e43' x='174.19' y='28.73' width='23.97' height='30.34' fill='#090909' fill-opacity='1' stroke='none' data-id='43' title='Small holder agriculture &amp;lt;br/&amp;gt;Bees &amp;lt;br/&amp;gt;Number of species: 5'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e44' x='198.17' y='28.73' width='23.97' height='30.34' fill='#141414' fill-opacity='1' stroke='none' data-id='44' title='Small holder agriculture &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 37'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e45' x='222.14' y='28.73' width='23.97' height='30.34' fill='#0C0C0C' fill-opacity='1' stroke='none' data-id='45' title='Small holder agriculture &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 11'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e46' x='246.11' y='28.73' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='46' title='Small holder agriculture &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e47' x='270.09' y='28.73' width='23.97' height='30.34' fill='#080808' fill-opacity='1' stroke='none' data-id='47' title='Small holder agriculture &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 4'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e48' x='294.06' y='28.73' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='48' title='Small holder agriculture &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect x='147.82' y='25.69' width='172.61' height='248.82' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n  <\/g>\n  <g clip-path='url(#svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c3)'>\n   <rect x='325.91' y='25.69' width='172.61' height='248.82' fill='#FFFFFF' fill-opacity='1' stroke='none'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e49' x='328.31' y='241.13' width='23.97' height='30.34' fill='#151515' fill-opacity='1' stroke='none' data-id='49' title='Abandoned plantation &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 42'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e50' x='376.25' y='241.13' width='23.97' height='30.34' fill='#1D1D1D' fill-opacity='1' stroke='none' data-id='50' title='Abandoned plantation &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 108'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e51' x='400.23' y='241.13' width='23.97' height='30.34' fill='#141414' fill-opacity='1' stroke='none' data-id='51' title='Abandoned plantation &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 38'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e52' x='424.2' y='241.13' width='23.97' height='30.34' fill='#0E0E0E' fill-opacity='1' stroke='none' data-id='52' title='Abandoned plantation &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 14'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e53' x='448.18' y='241.13' width='23.97' height='30.34' fill='#1C1C1C' fill-opacity='1' stroke='none' data-id='53' title='Abandoned plantation &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 96'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e54' x='472.15' y='241.13' width='23.97' height='30.34' fill='#1A1A1A' fill-opacity='1' stroke='none' data-id='54' title='Abandoned plantation &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 81'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e55' x='328.31' y='210.79' width='23.97' height='30.34' fill='#1C1C1C' fill-opacity='1' stroke='none' data-id='55' title='Fruiticulture &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 99'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e56' x='376.25' y='210.79' width='23.97' height='30.34' fill='#1E1E1E' fill-opacity='1' stroke='none' data-id='56' title='Fruiticulture &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 117'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e57' x='400.23' y='210.79' width='23.97' height='30.34' fill='#161616' fill-opacity='1' stroke='none' data-id='57' title='Fruiticulture &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 51'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e58' x='424.2' y='210.79' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='58' title='Fruiticulture &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e59' x='448.18' y='210.79' width='23.97' height='30.34' fill='#0B0B0B' fill-opacity='1' stroke='none' data-id='59' title='Fruiticulture &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 9'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e60' x='472.15' y='210.79' width='23.97' height='30.34' fill='#070707' fill-opacity='1' stroke='none' data-id='60' title='Fruiticulture &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 3'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e61' x='328.31' y='180.45' width='23.97' height='30.34' fill='#262626' fill-opacity='1' stroke='none' data-id='61' title='Mechanized agriculture &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 214'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e62' x='376.25' y='180.45' width='23.97' height='30.34' fill='#1F1F1F' fill-opacity='1' stroke='none' data-id='62' title='Mechanized agriculture &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 129'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e63' x='400.23' y='180.45' width='23.97' height='30.34' fill='#1F1F1F' fill-opacity='1' stroke='none' data-id='63' title='Mechanized agriculture &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 132'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e64' x='424.2' y='180.45' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='64' title='Mechanized agriculture &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e65' x='448.18' y='180.45' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='65' title='Mechanized agriculture &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e66' x='472.15' y='180.45' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='66' title='Mechanized agriculture &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e67' x='328.31' y='150.1' width='23.97' height='30.34' fill='#3A3A3A' fill-opacity='1' stroke='none' data-id='67' title='Pasture &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 542'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e68' x='376.25' y='150.1' width='23.97' height='30.34' fill='#3B3B3B' fill-opacity='1' stroke='none' data-id='68' title='Pasture &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 560'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e69' x='400.23' y='150.1' width='23.97' height='30.34' fill='#272727' fill-opacity='1' stroke='none' data-id='69' title='Pasture &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 218'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e70' x='424.2' y='150.1' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='70' title='Pasture &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e71' x='448.18' y='150.1' width='23.97' height='30.34' fill='#0B0B0B' fill-opacity='1' stroke='none' data-id='71' title='Pasture &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 8'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e72' x='472.15' y='150.1' width='23.97' height='30.34' fill='#090909' fill-opacity='1' stroke='none' data-id='72' title='Pasture &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 5'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e73' x='328.31' y='119.76' width='23.97' height='30.34' fill='#616161' fill-opacity='1' stroke='none' data-id='73' title='Primary forest &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 1541'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e74' x='376.25' y='119.76' width='23.97' height='30.34' fill='#858585' fill-opacity='1' stroke='none' data-id='74' title='Primary forest &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 2840'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e75' x='400.23' y='119.76' width='23.97' height='30.34' fill='#626262' fill-opacity='1' stroke='none' data-id='75' title='Primary forest &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 1593'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e76' x='424.2' y='119.76' width='23.97' height='30.34' fill='#444444' fill-opacity='1' stroke='none' data-id='76' title='Primary forest &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 770'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e77' x='448.18' y='119.76' width='23.97' height='30.34' fill='#A0A0A0' fill-opacity='1' stroke='none' data-id='77' title='Primary forest &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 3966'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e78' x='472.15' y='119.76' width='23.97' height='30.34' fill='#A4A4A4' fill-opacity='1' stroke='none' data-id='78' title='Primary forest &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 4174'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e79' x='328.31' y='89.42' width='23.97' height='30.34' fill='#171717' fill-opacity='1' stroke='none' data-id='79' title='Reforestation &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 52'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e80' x='376.25' y='89.42' width='23.97' height='30.34' fill='#0F0F0F' fill-opacity='1' stroke='none' data-id='80' title='Reforestation &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 16'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e81' x='400.23' y='89.42' width='23.97' height='30.34' fill='#0E0E0E' fill-opacity='1' stroke='none' data-id='81' title='Reforestation &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 15'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e82' x='424.2' y='89.42' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='82' title='Reforestation &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e83' x='448.18' y='89.42' width='23.97' height='30.34' fill='#0B0B0B' fill-opacity='1' stroke='none' data-id='83' title='Reforestation &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 8'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e84' x='472.15' y='89.42' width='23.97' height='30.34' fill='#040404' fill-opacity='1' stroke='none' data-id='84' title='Reforestation &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 1'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e85' x='328.31' y='59.07' width='23.97' height='30.34' fill='#484848' fill-opacity='1' stroke='none' data-id='85' title='Secondary forest &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 862'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e86' x='376.25' y='59.07' width='23.97' height='30.34' fill='#5B5B5B' fill-opacity='1' stroke='none' data-id='86' title='Secondary forest &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 1380'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e87' x='400.23' y='59.07' width='23.97' height='30.34' fill='#414141' fill-opacity='1' stroke='none' data-id='87' title='Secondary forest &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 690'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e88' x='424.2' y='59.07' width='23.97' height='30.34' fill='#2B2B2B' fill-opacity='1' stroke='none' data-id='88' title='Secondary forest &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 286'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e89' x='448.18' y='59.07' width='23.97' height='30.34' fill='#626262' fill-opacity='1' stroke='none' data-id='89' title='Secondary forest &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 1593'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e90' x='472.15' y='59.07' width='23.97' height='30.34' fill='#525252' fill-opacity='1' stroke='none' data-id='90' title='Secondary forest &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 1111'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e91' x='328.31' y='28.73' width='23.97' height='30.34' fill='#191919' fill-opacity='1' stroke='none' data-id='91' title='Small holder agriculture &amp;lt;br/&amp;gt;Ants &amp;lt;br/&amp;gt;Number of species: 67'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e92' x='376.25' y='28.73' width='23.97' height='30.34' fill='#121212' fill-opacity='1' stroke='none' data-id='92' title='Small holder agriculture &amp;lt;br/&amp;gt;Birds &amp;lt;br/&amp;gt;Number of species: 26'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e93' x='400.23' y='28.73' width='23.97' height='30.34' fill='#151515' fill-opacity='1' stroke='none' data-id='93' title='Small holder agriculture &amp;lt;br/&amp;gt;Dungbeetles &amp;lt;br/&amp;gt;Number of species: 42'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e94' x='424.2' y='28.73' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='94' title='Small holder agriculture &amp;lt;br/&amp;gt;Lianas &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e95' x='448.18' y='28.73' width='23.97' height='30.34' fill='#090909' fill-opacity='1' stroke='none' data-id='95' title='Small holder agriculture &amp;lt;br/&amp;gt;Saplings &amp;lt;br/&amp;gt;Number of species: 6'/>\n   <rect id='svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_e96' x='472.15' y='28.73' width='23.97' height='30.34' fill='#000000' fill-opacity='1' stroke='none' data-id='96' title='Small holder agriculture &amp;lt;br/&amp;gt;Trees &amp;lt;br/&amp;gt;Number of species: 0'/>\n   <rect x='325.91' y='25.69' width='172.61' height='248.82' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n  <\/g>\n  <g clip-path='url(#svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c4)'>\n   <rect x='147.82' y='5.48' width='172.61' height='20.22' fill='#D9D9D9' fill-opacity='1' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n   <text x='220.72' y='19.87' font-size='9pt' font-family='Open Sans' fill='#1A1A1A' fill-opacity='1'>PGM<\/text>\n  <\/g>\n  <g clip-path='url(#svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c5)'>\n   <rect x='325.91' y='5.48' width='172.61' height='20.22' fill='#D9D9D9' fill-opacity='1' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='round'/>\n   <text x='400.18' y='19.87' font-size='9pt' font-family='Open Sans' fill='#1A1A1A' fill-opacity='1'>STM<\/text>\n  <\/g>\n  <g clip-path='url(#svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08_c1)'>\n   <polyline points='162.20,277.25 162.20,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='186.18,277.25 186.18,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='210.15,277.25 210.15,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='234.13,277.25 234.13,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='258.10,277.25 258.10,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='282.07,277.25 282.07,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='306.05,277.25 306.05,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <text transform='translate(150.64,303.13) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Ants<\/text>\n   <text transform='translate(173.17,304.57) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Bees<\/text>\n   <text transform='translate(196.02,305.69) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Birds<\/text>\n   <text transform='translate(190.26,335.43) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Dungbeetles<\/text>\n   <text transform='translate(238.91,310.75) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Lianas<\/text>\n   <text transform='translate(255.35,318.28) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Saplings<\/text>\n   <text transform='translate(290.97,306.64) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Trees<\/text>\n   <polyline points='340.29,277.25 340.29,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='364.27,277.25 364.27,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='388.24,277.25 388.24,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='412.22,277.25 412.22,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='436.19,277.25 436.19,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='460.16,277.25 460.16,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='484.14,277.25 484.14,274.51' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <text transform='translate(328.73,303.13) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Ants<\/text>\n   <text transform='translate(351.26,304.57) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Bees<\/text>\n   <text transform='translate(374.11,305.69) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Birds<\/text>\n   <text transform='translate(368.34,335.43) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Dungbeetles<\/text>\n   <text transform='translate(417.00,310.75) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Lianas<\/text>\n   <text transform='translate(433.44,318.28) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Saplings<\/text>\n   <text transform='translate(469.06,306.64) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Trees<\/text>\n   <text transform='translate(39.50,348.02) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Abandoned plantation<\/text>\n   <text transform='translate(80.18,277.00) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Fruiticulture<\/text>\n   <text transform='translate(35.66,291.17) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Mechanized agriculture<\/text>\n   <text transform='translate(98.04,198.44) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Pasture<\/text>\n   <text transform='translate(71.80,194.35) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Primary forest<\/text>\n   <text transform='translate(74.88,160.93) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Reforestation<\/text>\n   <text transform='translate(61.42,144.04) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Secondary forest<\/text>\n   <text transform='translate(33.66,141.46) rotate(-45.00)' font-size='9pt' font-family='Open Sans' fill='#4D4D4D' fill-opacity='1'>Small holder agriculture<\/text>\n   <polyline points='145.08,256.31 147.82,256.31' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='145.08,225.96 147.82,225.96' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='145.08,195.62 147.82,195.62' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='145.08,165.27 147.82,165.27' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='145.08,134.93 147.82,134.93' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='145.08,104.59 147.82,104.59' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='145.08,74.24 147.82,74.24' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n   <polyline points='145.08,43.90 147.82,43.90' fill='none' stroke='#333333' stroke-opacity='1' stroke-width='1.07' stroke-linejoin='round' stroke-linecap='butt'/>\n  <\/g>\n <\/g>\n<\/svg>","js":null,"uid":"svg_fdc88c02_fd60_408b_a6d8_b92c852ccf08","ratio":1.4,"settings":{"tooltip":{"css":".tooltip_SVGID_ { background-color:white;color:black;padding:5px;border-radius:2px; ; position:absolute;pointer-events:none;z-index:999;}","placement":"doc","opacity":0.9,"offx":10,"offy":0,"use_cursor_pos":true,"use_fill":false,"use_stroke":false,"delay_over":200,"delay_out":500},"hover":{"css":".hover_data_SVGID_ { stroke:black;cursor:pointer;r:5px; }","reactive":false,"nearest_distance":null},"hover_inv":{"css":".hover_inv_SVGID_ { opacity:0.5; }"},"hover_key":{"css":".hover_key_SVGID_ { fill:orange;stroke:black;cursor:pointer; }\ntext.hover_key_SVGID_ { stroke:none;fill:orange; }\ncircle.hover_key_SVGID_ { fill:orange;stroke:black; }\nline.hover_key_SVGID_, polyline.hover_key_SVGID_ { fill:none;stroke:orange; }\nrect.hover_key_SVGID_, polygon.hover_key_SVGID_, path.hover_key_SVGID_ { fill:orange;stroke:none; }\nimage.hover_key_SVGID_ { stroke:orange; }","reactive":true},"hover_theme":{"css":".hover_theme_SVGID_ { fill:orange;stroke:black;cursor:pointer; }\ntext.hover_theme_SVGID_ { stroke:none;fill:orange; }\ncircle.hover_theme_SVGID_ { fill:orange;stroke:black; }\nline.hover_theme_SVGID_, polyline.hover_theme_SVGID_ { fill:none;stroke:orange; }\nrect.hover_theme_SVGID_, polygon.hover_theme_SVGID_, path.hover_theme_SVGID_ { fill:orange;stroke:none; }\nimage.hover_theme_SVGID_ { stroke:orange; }","reactive":true},"select":{"css":".select_data_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_data_SVGID_ { stroke:none;fill:red; }\ncircle.select_data_SVGID_ { fill:red;stroke:black; }\nline.select_data_SVGID_, polyline.select_data_SVGID_ { fill:none;stroke:red; }\nrect.select_data_SVGID_, polygon.select_data_SVGID_, path.select_data_SVGID_ { fill:red;stroke:none; }\nimage.select_data_SVGID_ { stroke:red; }","type":"multiple","only_shiny":true,"selected":[]},"select_inv":{"css":""},"select_key":{"css":".select_key_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_key_SVGID_ { stroke:none;fill:red; }\ncircle.select_key_SVGID_ { fill:red;stroke:black; }\nline.select_key_SVGID_, polyline.select_key_SVGID_ { fill:none;stroke:red; }\nrect.select_key_SVGID_, polygon.select_key_SVGID_, path.select_key_SVGID_ { fill:red;stroke:none; }\nimage.select_key_SVGID_ { stroke:red; }","type":"single","only_shiny":true,"selected":[]},"select_theme":{"css":".select_theme_SVGID_ { fill:red;stroke:black;cursor:pointer; }\ntext.select_theme_SVGID_ { stroke:none;fill:red; }\ncircle.select_theme_SVGID_ { fill:red;stroke:black; }\nline.select_theme_SVGID_, polyline.select_theme_SVGID_ { fill:none;stroke:red; }\nrect.select_theme_SVGID_, polygon.select_theme_SVGID_, path.select_theme_SVGID_ { fill:red;stroke:none; }\nimage.select_theme_SVGID_ { stroke:red; }","type":"single","only_shiny":true,"selected":[]},"zoom":{"min":1,"max":1,"duration":300},"toolbar":{"position":"topright","pngname":"diagram","tooltips":null,"hidden":"saveaspng","delay_over":200,"delay_out":500},"sizing":{"rescale":true,"width":1}}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><div>CC BY 4.0</div></div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
