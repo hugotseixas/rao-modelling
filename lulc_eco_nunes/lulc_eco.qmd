@@ -11,6 +11,7 @@ format:
     theme: lux
     df-print: paged
     code-fold: true
+    self-contained: true
 page-layout: article
 abstract: "Lets explore data on the impacts of land use transitions over ecosystem services! I will explore aplication of predctive models over this data."
 highlight-style: arrow
@@ -20,6 +21,12 @@ license: CC BY 4.0
 # Introduction
 
 This exploration exercise will use data from the paper "Linking land-use and land-cover transitions to their ecological impact in the Amazon".
+
+I have two questions:
+
+ - Can I predict the species richness of an area with information about: land use and land cover, carbon stocks and soil properties?
+ 
+ - Can I classify the land use and land cover with information about: species richness, carbon stocks and soil properties?
 
 Here are the packages used in this exercise:
 
@@ -39,6 +46,25 @@ library(tidyverse)
 library(tidymodels)
 
 ```
+
+```{r}
+
+my_palette <-
+  c(
+    "#004d25", "#11823b", "#99AA38", "#721121", 
+    "#A5402D", "#F15156", "#FFC07F", "#804D54"
+  )
+
+my_labels <-
+  c(
+    "Undisturbed Forest", "Logged Forest", 
+    "Logged Burned Forest", "Old Secondary Forest", 
+    "Young Secondary Forest", "Reforestation", 
+    "Pasture", "Mechanized Agriculture"
+  )
+
+```
+
 
 # Download and organize data
 
@@ -89,6 +115,7 @@ dir_info("data/") %>%
 I will start opening the table files and organize them into a single table. I will start with the transect classification data, which holds data of two regions, STM ( municipalities of Santarém, Belterra, and Mojuí-dos-Campos) and PGM (municipality of Parangominas):
 
 ```{r}
+#| label: organize transect data
 
 tr_class <- 
   read_delim(
@@ -124,32 +151,39 @@ tables_list <-
   )
 
 # Merge tables in a single table
-biodiversity <- map_df(
-  .x = tables_list,
-  .f = function(t) {
+biodiversity <- 
+  map_df(
+    .x = tables_list,
+    .f = function(t) {
     
-    table <- read_delim(
-      file = t,
-      name_repair = ~ tolower(.),
-      col_select = !matches("aaaaa"), # Remove weird column
-      col_types = "cccc"
-    )
-    
-    table %>%
-      pivot_longer(
-        cols = starts_with("sp"),
-        names_to = "specie",
-        values_to = "number"
-      ) %>%
-      mutate(
-        specie_type = str_remove_all(
-          string = t, 
-          pattern = "data/|_|STM|PGM|.txt"
+      table <- 
+        read_delim(
+          file = t,
+          name_repair = ~ tolower(.),
+          col_select = !matches("aaaaa"), # Remove weird column
+          col_types = "cccc"
         )
-      )
+
+      table %>%
+        pivot_longer(
+          cols = starts_with("sp"),
+          names_to = "specie",
+          values_to = "number"
+        ) %>%
+        mutate(
+          bio_specie = str_remove_all(
+            string = t, 
+            pattern = "data/|_|STM|PGM|.txt"
+          )
+        )
     
-  }
-)
+    }
+  )
+
+biodiversity <- biodiversity %>%
+  mutate(number = if_else(number > 0, 1, 0)) %>%
+  group_by(region, transect_code, bio_specie) %>%
+  summarise(bio_richness = sum(number, na.rm = FALSE), .groups = "drop")
 
 head(biodiversity)
 
@@ -164,7 +198,7 @@ I will also use the table with some environmental variables.
 envr <-
   read_delim(
     file = "data/environment_all.txt",
-    col_select = c(1:10, 37:38, 49:50),
+    col_select = c(1:7, 37:38, 49:50),
     name_repair = ~ 
       str_replace(
         string = tolower(.), # I prefer everything in lowercase
@@ -180,6 +214,14 @@ envr <-
         pattern = "Mechanisd_agriculture",
         replacement = "Mechanized_agriculture"
       )
+  ) %>%
+  rename(
+    transect_code = transectcode,
+    env_silt = silt_all, env_clay = clay_all,
+    env_elev = elev_mean, env_slope = slope_mean,
+  ) %>%
+  mutate(
+    across(c(env_silt:env_slope), ~ round(.x, digits = 2))
   )
 
 head(envr)
@@ -198,13 +240,21 @@ soil <-
       table <- 
         read_delim(
           file = t,
-          col_select = c(2:12),
+          col_select = c(2:9, 11, 12), # I'm leaving sodium out
           name_repair = ~ tolower(.),
           col_types = "_cccc"
         )
       
     }
-  )
+  ) %>%
+  rename(
+    soil_ph = ph, soil_n = nperc, soil_p = p, 
+    soil_k = k, soil_ca = camg, soil_al = al
+  ) %>%
+  mutate(
+    soil_n = soil_n * 100, # to percentage
+    across(c(soil_ph, soil_p:soil_al), ~ round(.x, digits = 2))
+  ) 
 
 head(soil)
 
@@ -228,6 +278,13 @@ carbon <-
         mutate(region = str_extract(t, "PGM|STM"))
       
     }
+  ) %>%
+  rename(
+    carbon_aboveground = aboveground_pool, carbon_litter = litter_pool,
+    caebon_deadwood = dead_pool, carbon_soil = soil_pool_new
+  ) %>%
+  mutate(
+    across(c(carbon_aboveground:carbon_soil), ~ round(.x, digits = 2))
   )
 
 head(carbon)
@@ -242,8 +299,8 @@ head(carbon)
 
 full_data <- tr_class %>%
   inner_join(
-    y = envr, 
-    by = c("region", "catchment", "transect", "transect_code" = "transectcode")
+    y = biodiversity, 
+    by = c("region", "transect_code")
   ) %>%
   inner_join(
     y = soil, 
@@ -254,7 +311,7 @@ full_data <- tr_class %>%
     by = c("region", "transect_code")
   ) %>%
   inner_join(
-    y = biodiversity, 
+    y = envr, 
     by = c("region", "catchment", "transect", "transect_code")
   ) %>%
   mutate(
@@ -262,6 +319,14 @@ full_data <- tr_class %>%
       string = land_useclass, 
       pattern = "-|_",
       replacement = " "
+    ),
+    region = fct(region, levels = c("STM", "PGM")),
+    lu_uf = fct(
+      lu_uf, 
+      levels = c(
+        "UF", "LF", "BF", "LBF", "SFold", "SFyoung", "REF", "PA", "MA", 
+        "AP", "FRU", "SHA"
+      )
     )
   )
 
@@ -279,7 +344,7 @@ file_delete(
   )
 )
 
-rm(list = ls())
+rm(list = setdiff(ls(), c("my_palette", "my_labels")))
 
 ```
 
@@ -292,11 +357,37 @@ Now we have a single table to start exploring! Lets begin with some descriptive 
 ## Transects
 
 ```{r}
+
+data <- 
+  read_parquet(
+    file = "data/lulc_eco.parquet",
+    col_select = c("region", "transect_code", "lu_uf")
+  ) %>%
+  distinct(region, transect_code, lu_uf, .keep_all = TRUE) %>%
+  group_by(lu_uf) %>%
+  count(lu_uf) %>%
+  ungroup()
+
+lu_subset <- data %>%
+  arrange(desc(n)) %>%
+  slice_max(n, n = 8) %>%
+  pull(lu_uf)
+
+data %>%
+  arrange(desc(n))
+
+```
+
+
+```{r}
 #| label: transect-location
 #| warning: false
 
 muni <- 
-  read_municipality(code_muni = "PA", showProgress = FALSE) %>% 
+  read_municipality(
+    code_muni = "PA", 
+    showProgress = FALSE
+  ) %>% 
   filter(code_muni %in% c(1506807, 1501451, 1505502))
 
 data <- 
@@ -309,21 +400,14 @@ data <-
         read_parquet(
           file = "data/lulc_eco.parquet",
           col_select = c(
-            "region", "transect_code", "land_useclass", "utm_x", "utm_y"
+            "region", "transect_code", "lu_uf", "utm_x", "utm_y"
           )
         ) %>%
-        filter(region == r) %>%
-        distinct(region, transect_code, land_useclass, .keep_all = TRUE) %>%
-        mutate(
-          land_useclass = fct_relevel(
-            factor(land_useclass),
-            c(
-              "Primary forest", "Secondary forest", "Reforestation",
-              "Small holder agriculture", "Mechanized agriculture",
-              "Fruticulture", "Abandoned plantation", "Pasture"
-            )
-          )
+        filter(
+          region == r, 
+          lu_uf %in% lu_subset
         ) %>%
+        distinct(region, transect_code, lu_uf, .keep_all = TRUE) %>%
         st_as_sf(
           coords = c("utm_x", "utm_y"), 
           crs = glue(
@@ -334,8 +418,8 @@ data <-
       
     }
   )
-  
-plot <- 
+
+maps <- 
   map2(
     .x = c("STM", "PGM"),
     .y = list(c(1506807, 1501451), c(1505502)),
@@ -346,23 +430,20 @@ plot <-
         geom_sf_interactive(
           data = data %>% filter(region == r),
           aes(
-            color = land_useclass,
-            tooltip = land_useclass,
-            data_id = land_useclass,
-            `data-id` = land_useclass
+            color = lu_uf,
+            tooltip = lu_uf,
+            data_id = lu_uf,
+            `data-id` = lu_uf
           ),
           size = 1,
           extra_interactive_params = "data-id"
         ) +
         scale_color_manual_interactive(
-          values = c(
-            "#004d25", "#11823b", "#99AA38", "#721121", 
-            "#A5402D", "#F15156", "#FFC07F", "#804D54"
-          ),
+          values = my_palette,
           extra_interactive_params = "data-id",
           `data-id` = data %>% 
-            arrange(data, land_useclass) %>% 
-            distinct(land_useclass),
+            arrange(data, lu_uf) %>% 
+            distinct(lu_uf),
           data_id = function(breaks) { as.character(breaks) }
         ) +
         annotate(
@@ -370,110 +451,85 @@ plot <-
           -Inf, Inf, 
           label = glue("bold({r})"), 
           parse = TRUE,
-          hjust = -1.2, vjust = 4
+          hjust = -0.5, vjust = 3
         ) +
         guides(
-          color = guide_legend_interactive(
-            ncol = 1,
-            override.aes = list(size = 4)
-          )
+          color = guide_legend_interactive(override.aes = list(size = 4))
         ) +
-      theme_void() +
-      theme(
-        legend.title = element_blank(),
-        panel.grid.major = element_blank(),
-        axis.title = element_blank()
-      )
+        theme_void(base_family = "sans") +
+        theme(
+          legend.title = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.title = element_blank(),
+          legend.position = "bottom"
+        )
+      
+    }
+  )
+
+bars <- 
+  map(
+    .x = c("STM", "PGM"),
+    .f = function(r) {
+      
+      ggplot() +
+        geom_col_interactive(
+          data = data %>% 
+            filter(region == r) %>%
+            group_by(lu_uf) %>%
+            count(),
+          aes(
+            data_id = lu_uf,
+            `data-id` = lu_uf,
+            x = n,
+            y = lu_uf,
+            tooltip = glue("Observations: {n}"),
+            fill = lu_uf
+          ),
+          show.legend = FALSE
+        ) +
+        scale_fill_manual_interactive(
+          values = my_palette,
+          extra_interactive_params = "data-id",
+          `data-id` = data %>% 
+            arrange(data, lu_uf) %>% 
+            distinct(lu_uf),
+          data_id = function(breaks) { as.character(breaks) }
+        ) +
+        labs(y = "", x = "") +
+        theme_void(base_family = "sans") +
+        theme(
+          text = element_text(size = 15, family = "Open Sans"),
+          axis.text.y = element_blank(),
+          legend.position = ""
+        )
       
     }
   )
   
+rm(muni)
+
 girafe(
   code = 
     print(
-      (plot[[2]] + theme(legend.position = "")) /
-        plot[[1]] + plot_layout(guides = "collect")
+      maps[[2]] + bars[[2]] + 
+        plot_spacer() + plot_spacer() + 
+        maps[[1]] + bars[[1]] + 
+        plot_layout(
+          ncol = 2, nrow = 3,
+          guides = "collect",
+          heights = c(2, 0.2, 2),
+          width = c(3, 1)
+        ) & 
+        theme(legend.position = "bottom")
       ), 
   options = list(
     opts_tooltip(
       css = "background-color:white;color:black;padding:5px;border-radius:2px;"
     ),
-    opts_hover_inv(css = "opacity:0.1;"),
+    opts_hover_inv(css = "opacity:0.5;"),
     opts_hover(girafe_css("stroke:black;fill:black;")),
     opts_hover_key(girafe_css("stroke:black;fill:black")),
-    opts_toolbar(saveaspng = FALSE),
-    fonts = list(sans = "Open Sans")
-  )
-)
-
-```
-
-
-```{r}
-#| label: transect-lulc
-
-data <- read_parquet(
-  file = "data/lulc_eco.parquet",
-  col_select = c("region", "transect_code", "land_useclass"),
-  as_data_frame = FALSE
-) %>%
-  distinct(region, transect_code, land_useclass) %>%
-  group_by(region) %>%
-  count(land_useclass) %>%
-  collect() %>%
-  mutate(total = sum(n)) %>%
-  ungroup() %>%
-  mutate(
-    id = row_number(),
-    n_label = paste("Observations:", n)
-  )
-  
-plot <- ggplot(data) +
-  facet_wrap_interactive(
-    interactive_on = "both",
-    vars(region),
-    labeller = labeller_interactive(
-      aes(
-        tooltip = paste("Total observations:", unique(data$total)),
-        data_id = region,
-      )
-    )
-  ) +
-  geom_col_interactive(
-    aes(
-      data_id = region,
-      x = n, 
-      y = land_useclass,
-      tooltip = n_label,
-      fill = n
-    )
-  ) +
-  scale_fill_gradient(
-    low = "#000000",
-    high = "#C0C0C0"
-  ) +
-  labs(y = "", x = "") +
-  theme_bw(base_family = "sans") +
-  theme(
-    text = element_text(size = 15, family = "Open Sans"),
-    axis.text.y = element_text(hjust = 0, margin = margin(r = 30)),
-    strip.background = element_rect_interactive(),
-    legend.position = ""
-  )
-
-girafe(
-  ggobj = plot, 
-  options = list(
-    opts_tooltip(
-      css = "background-color:white;color:black;padding:5px;border-radius:2px;"
-    ),
-    opts_hover_inv(css = "opacity:0.5;"),
-    opts_hover(
-      girafe_css(
-        css = "",
-        area = "stroke:black;cursor:pointer;r:5px;"
-      )
-    ),
     opts_toolbar(saveaspng = FALSE),
     fonts = list(sans = "Open Sans")
   )
@@ -491,19 +547,19 @@ data <-
   read_parquet(
     file = "data/lulc_eco.parquet",
     col_select = c(
-      "region", "transect_code", "land_useclass",
-      "specie", "number", "specie_type"
+      "region", "transect_code", "lu_uf",
+      "bio_richness", "bio_specie"
     )
   ) %>%
-  mutate(number = if_else(number > 0, 1, 0)) %>%
-  group_by(region, land_useclass, specie_type) %>%
-  summarise(richness = sum(number, na.rm = TRUE), .groups = "drop") %>%
+  filter(lu_uf %in% lu_subset) %>%
+  group_by(region, lu_uf, bio_specie) %>%
+  summarise(bio_richness = sum(bio_richness), .groups = "keep") %>%
   mutate(
-    id = row_number(),
+    id = cur_group_id(),
     richness_label = glue(
-      "{land_useclass} \n",
-      "{specie_type} \n",
-      "Number of species: {richness}"
+      "{lu_uf} \n",
+      "{bio_specie} \n",
+      "Number of species: {bio_richness}"
     )
   )
 
@@ -512,14 +568,14 @@ plot <- ggplot(data) +
   geom_tile_interactive(
     aes(
       data_id = id,
-      x = specie_type,
-      y = land_useclass,
-      fill = sqrt(richness),
+      x = bio_specie,
+      y = lu_uf,
+      fill = sqrt(bio_richness),
       tooltip = richness_label
     )
   ) +
   scale_fill_gradient(
-    low = "#000000",
+    low = "#2c2929",
     high = "#C0C0C0"
   ) +
   labs(y = "", x = "") +
@@ -555,32 +611,34 @@ girafe(
 
 ```{r}
 
-data <- read_parquet(
+data <- 
+  read_parquet(
     file = "data/lulc_eco.parquet",
     col_select = c(
       "region", "transect_code", "land_useclass",
-      "specie", "number", "specie_type"
+      "bio_richness", "bio_specie"
     )
   ) %>%
-  mutate(number = if_else(number > 0, 1, 0)) %>%
   group_by(region, land_useclass, transect_code) %>%
-  summarise(richness = sum(number, na.rm = TRUE), .groups = "drop_last") %>%
+  summarise(
+    bio_richness = sum(bio_richness, na.rm = TRUE), .groups = "drop_last"
+  ) %>%
   mutate(
     id = cur_group_id(),
     label = glue(
       "Total Observations: {n()}",
       "\n",
-      "Mean: {round(mean(richness))}",
+      "Mean: {round(mean(bio_richness))}",
       "\n",
-      "Median: {round(median(richness))}",
+      "Median: {round(median(bio_richness))}",
       "\n",
-      "Variance: {round(var(richness))}"
+      "Variance: {round(var(bio_richness))}"
     )
   ) %>%
   ungroup() %>%
   add_count(land_useclass) %>%
   filter(
-    richness > 0,
+    bio_richness > 0,
     dense_rank(desc(n)) <= 4 # Filter the four LULC classes with most obs
   ) %>%
   select(-n)
@@ -601,7 +659,7 @@ plot <-
     ) +
     geom_histogram_interactive(
       aes(
-        x = richness,
+        x = bio_richness,
         tooltip = label,
         data_id = id
       ),
@@ -641,18 +699,324 @@ girafe(
 
 ```{r}
 
-read_parquet(
+data <- 
+  read_parquet(
     file = "data/lulc_eco.parquet",
     col_select = c(
-      "region", "transect_code", "land_useclass", "ph":"al"
+      "region", "transect_code", "land_useclass", "soil_ph":"soil_al"
     )
+  ) %>%
+  distinct(transect_code, .keep_all = TRUE) %>%
+  pivot_longer(
+    cols = soil_ph:soil_al,
+    names_to = "soil_props",
+    values_to = "value"
+  ) %>%
+  drop_na() %>%
+  add_count(land_useclass) %>%
+  filter(
+    dense_rank(desc(n)) <= 4 # Filter the four LULC classes with most obs
+  ) %>%
+  select(-n)
+
+plot <- 
+  ggplot(data) +
+  facet_wrap(
+    vars(soil_props), 
+    scales = "free_x",
+    labeller = labeller(
+      soil_props = c(
+        soil_al = "Al", soil_ca = "Ca", 
+        soil_k = "K", soil_n = "N", 
+        soil_p = "P", soil_ph = "pH"
+      )
+    )
+  ) +
+  geom_violin(
+    aes(
+      y = land_useclass, 
+      x = value
+    )
+  ) + 
+  scale_x_continuous(breaks = pretty_breaks(4)) +
+  theme_bw(base_family = "sans") +
+  theme(
+    axis.title = element_blank(),
+    text = element_text(size = 15, family = "Open Sans"),
+    axis.text.y = element_text(hjust = 0, margin = margin(r = 30))
+  )
+
+girafe(
+  ggobj = plot, 
+  options = list(
+    opts_tooltip(
+      css = "background-color:white;color:black;padding:5px;border-radius:2px;"
+    ),
+    opts_hover_inv(css = "opacity:0.5;"),
+    opts_hover(
+      girafe_css(
+        css = "stroke:black;cursor:pointer;r:5px;",
+      )
+    ),
+    opts_toolbar(saveaspng = FALSE),
+    fonts = list(sans = "Open Sans")
+  )
+)
+
+```
+
+## Carbon
+
+```{r}
+
+data <- 
+  read_parquet(
+    file = "data/lulc_eco.parquet",
+    col_select = c(
+      "region", "transect_code", "land_useclass", 
+      "carbon_aboveground":"carbon_soil"
+    )
+  ) %>%
+  distinct(transect_code, .keep_all = TRUE) %>%
+  drop_na() %>%
+  pivot_longer(
+    cols = carbon_aboveground:carbon_soil,
+    names_to = "carbon",
+    values_to = "value"
+  ) %>%
+  add_count(land_useclass) %>%
+  filter(
+    dense_rank(desc(n)) <= 4 # Filter the four LULC classes with most obs
+  ) %>%
+  select(-n) %>%
+  group_by(region, land_useclass, transect_code) %>%
+  summarise(value = sum(value), .groups = "drop")
+
+ggplot(data) +
+  geom_violin(
+    aes(
+      y = land_useclass, 
+      x = value
+    )
+  ) + 
+  scale_x_continuous(breaks = pretty_breaks(4)) +
+  theme_bw(base_family = "sans") +
+  theme(
+    axis.title = element_blank(),
+    text = element_text(size = 15, family = "Open Sans"),
+    axis.text.y = element_text(hjust = 0, margin = margin(r = 30))
   )
 
 ```
 
+```{r}
 
-## Carbon
+data <- 
+  read_parquet(
+    file = "data/lulc_eco.parquet",
+    col_select = c(
+      "region", "transect_code", "land_useclass", 
+      "carbon_litter", "carbon_soil"
+    )
+  ) %>%
+  distinct(transect_code, .keep_all = TRUE) %>%
+  drop_na() %>%
+  pivot_longer(
+    cols = carbon_litter:carbon_soil,
+    names_to = "carbon",
+    values_to = "value"
+  ) %>%
+  add_count(land_useclass) %>%
+  filter(
+    dense_rank(desc(n)) <= 4 # Filter the four LULC classes with most obs
+  ) %>%
+  select(-n)
+
+ggplot(data) +
+  facet_wrap(
+    vars(carbon), 
+    scales = "free_x",
+    labeller = labeller(
+      carbon = c(carbon_litter = "Litter", carbon_soil = "Soil")
+    )
+  ) +
+  geom_violin(
+    aes(
+      y = land_useclass, 
+      x = value
+    )
+  ) + 
+  scale_x_continuous(breaks = pretty_breaks(4)) +
+  theme_bw(base_family = "sans") +
+  theme(
+    axis.title = element_blank(),
+    text = element_text(size = 15, family = "Open Sans"),
+    axis.text.y = element_text(hjust = 0, margin = margin(r = 30))
+  )
+
+```
+
+## Filter data
+
+```{r}
+
+data <- 
+  read_parquet(
+    file = "data/lulc_eco.parquet",
+    col_select = c(
+      "region", "catchment", "transect", "land_useclass", "lu_uf",
+      "bio_richness", "bio_specie",
+      "soil_ph":"soil_al",
+      "carbon_aboveground":"carbon_soil"
+    )
+  ) %>%
+  filter(
+    lu_uf %in% lu_subset,
+    bio_specie != "Bees"
+  ) %>%
+  drop_na()
+
+write_parquet(
+  x = data,
+  sink = "data/filtered_lulc_eco.parquet",
+  version = "latest"
+)
+
+```
+
 
 :::
 
 # Modelling
+
+```{r}
+
+data <- 
+  read_parquet(
+    file = "data/filtered_lulc_eco.parquet",
+    col_select = c(
+      "region", "catchment", "transect", "land_useclass", "lu_uf",
+      "bio_richness", "bio_specie",
+      "soil_ph":"soil_al",
+      "carbon_aboveground":"carbon_soil"
+    )
+  ) %>%
+  drop_na()
+
+set.seed(821715)
+
+data_split <- initial_split(data, prop = 2/4)
+
+train_data <- training(data_split)
+test_data  <- testing(data_split)
+
+```
+
+```{r}
+
+biod_rec <- 
+  recipe(bio_richness ~ ., data = train_data) %>%
+  update_role(
+    region, catchment, transect, land_useclass,
+    new_role = "ID"
+  ) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_zv(all_predictors())
+
+biod_mod <-
+  linear_reg() %>%
+  set_engine("lm")
+
+biod_wflow <- 
+  workflow() %>% 
+  add_model(biod_mod) %>% 
+  add_recipe(biod_rec)
+
+biod_fit <- 
+  biod_wflow %>%
+  fit(data = train_data)
+
+biod_aug <- augment(biod_fit, test_data)
+
+biod_aug %>% 
+  metrics(truth = bio_richness, estimate = .pred)
+
+biod_aug %>%
+  ggplot() +
+  geom_point(
+    aes(
+      x = bio_richness,
+      y = .pred,
+      color = land_useclass
+    )
+  ) +
+  lims(x = c(-30, 100), y = c(-30, 100)) +
+  geom_abline() +
+  coord_equal() +
+  theme_bw()
+
+```
+
+```{r}
+
+biod_rec <- 
+  recipe(bio_richness ~ ., data = train_data) %>%
+  update_role(
+    region, catchment, transect, land_useclass,
+    new_role = "ID"
+  ) %>%
+  step_zv(all_predictors())
+
+biod_mod <-
+  rand_forest() %>%
+  set_engine("ranger") %>%
+  set_mode("regression")
+
+biod_wflow <- 
+  workflow() %>% 
+  add_model(biod_mod) %>% 
+  add_recipe(biod_rec)
+
+biod_fit <- 
+  biod_wflow %>%
+  fit(data = train_data)
+
+biod_aug <- augment(biod_fit, test_data)
+
+mod_met <- biod_aug %>% 
+  metrics(truth = bio_richness, estimate = .pred) %>%
+  mutate(.estimate = round(.estimate, digits = 2))
+
+biod_aug %>%
+  ggplot() +
+  geom_point(
+    aes(
+      x = bio_richness,
+      y = .pred,
+      color = lu_uf
+    )
+  ) +
+  scale_color_manual(values = my_palette) +
+  annotate(
+    geom = "text",
+    x = 0, y = c(100, 96, 92),
+    hjust = 0,
+    label = c(
+      glue("bold({toupper(mod_met$.metric[1])})- {mod_met$.estimate[1]}"),
+      glue("bold({toupper(mod_met$.metric[3])})- {mod_met$.estimate[3]}"),
+      glue("bold({toupper(mod_met$.metric[2])})- {mod_met$.estimate[2]}")
+    ),
+    parse = TRUE,
+    size = 5
+  ) +
+  lims(x = c(0, 100), y = c(0, 100)) +
+  labs(x = "Observations", y = "Estimations") +
+  geom_abline() +
+  coord_equal() +
+  theme_bw() +
+  theme(
+    legend.title = element_blank()
+  )
+
+```
+
