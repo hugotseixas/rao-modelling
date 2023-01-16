@@ -1,39 +1,58 @@
 ---
 title: "Exploring: Linking land-use and land-cover transitions to their ecological impact in the Amazon"
+
 author: 
   - name: Hugo Tameirão Seixas
     email: seixas.hugo@protonmail.com
     url: hugotseixas.com
+
+abstract: In this project I will explore a data collection containing information about land use and land cover (LULC), biodiversity, soil characteristics and carbon stocks in the Amazon biome. The data was published along a study that analysed the effects of LULC transitions over ecosystem services. Here, I will use this data to perform descriptive analysis and train models of prediction and classification.
+
 toc: true
 toc-title: Contents
+highlight-style: monochrome-dark
+bibliography: references.bib
+
 format: 
   html:
-    theme: lux
+    theme: 
+    - lux
+    - styles.scss
     df-print: paged
+    page-layout: article
+    code-overflow: wrap
     code-fold: true
+    code-tools: true
+    source: https://github.com/hugotseixas/rao_modelling/blob/main/lulc_eco_nunes/lulc_eco.qmd
     self-contained: true
-page-layout: article
-abstract: "Lets explore data on the impacts of land use transitions over ecosystem services! I will explore aplication of predctive models over this data."
-highlight-style: arrow
+
+execute:
+  freeze: auto
+  cache: true
+  
 license: CC BY 4.0
 ---
 
 # Introduction
 
-This exploration exercise will use data from the paper "Linking land-use and land-cover transitions to their ecological impact in the Amazon".
+This exploration exercise will use data from the paper [Linking land-use and land-cover transitions to their ecological impact in the Amazon](https://www.pnas.org/doi/full/10.1073/pnas.2202310119) [@Nunes2022]. They collected data from different areas inside different regions in the Amazon. The data holds information about Land Use and Land Cover (LULC), biodiversity, soil characteristics and carbon stocks. The data availability provides a good opportunity to practice data manipulation and modelling techniques.
 
-I have two questions:
+From the available data, I will try two exercises:
 
- - Can I predict the species richness of an area with information about: land use and land cover, carbon stocks and soil properties?
+ - Predict the species richness of an area with information about: land use and land cover, carbon stocks and soil properties?
  
- - Can I classify the land use and land cover with information about: species richness, carbon stocks and soil properties?
+ - Classify the land use and land cover with information about: species richness, carbon stocks and soil properties?
+
+I will try different models to perform the predictions and classifications, and at the same time, will try to present the data and results in a intuitive manner.
 
 Here are the packages used in this exercise:
 
 ```{r}
-#| label: load packages
+#| label: load-packages
 #| warning: false
 
+library(poissonreg)
+library(vip)
 library(sf)
 library(geobr)
 library(arrow)
@@ -41,20 +60,26 @@ library(curl)
 library(glue)
 library(fs)
 library(ggiraph)
+library(janitor)
 library(patchwork)
 library(tidyverse)
 library(tidymodels)
 
 ```
 
-```{r}
+I will also set some settings that will be used across the document.
 
+```{r}
+#| label: code-settings
+
+# These are the colors to represent LULC classes.
 my_palette <-
   c(
     "#004d25", "#11823b", "#99AA38", "#721121", 
     "#A5402D", "#F15156", "#FFC07F", "#804D54"
   )
 
+# These are the labels for the LULC classes
 my_labels <-
   c(
     "Undisturbed Forest", "Logged Forest", 
@@ -65,18 +90,26 @@ my_labels <-
 
 ```
 
+::: {.callout-warning}
+
+This project is only an exercise to apply techniques of data manipulation, visualization, exploratory analysis and modelling. It is not meant to make inferences about real world process ecological processes, it does not have theoretical importance.
+
+:::
 
 # Download and organize data
 
-Lets download the data! I am going to download the data from Zenodo, than open it in the local machine and keep only the files of interest.
+Before conducting the exploratory analysis and the modelling, I will download the data, which is available at [Zenodo](https://zenodo.org/record/6518744#.Y8MiQrTMJGo), and perform some data manipulation in order to store all data in a single table.
 
 ## Download
 
+I am going to download the data directly from the Zenodo repository, in which I simply provide the link to the data collection. After that I just need to extract the compressed files, move the files I'm interested to another folder, and delete the rest. By the end of the process, we can see that I have 25 files available for analysis. Some files are named with "STM" and "PGM", which are both regions explored in the study, so many tables holding the similar information are divided by these two regions. We can observe files named with animals names, there are also tables named with "soil" and "carbon", so these are the ones I am interested at. There is also a table containing environment information, which I'm also going to use.
+
 ```{r}
-#| label: download data
+#| label: download-data
 
 file_name <- "data/LULC_transitions-v1.1.zip"
 
+# Download by providing the link to the data
 curl_download(
   url = glue(
     "https://zenodo.org/record/6518744/files/",
@@ -85,22 +118,28 @@ curl_download(
   destfile = file_name
 )
 
+# Extract files from compressed archive
 unzip(
   zipfile = file_name,
   exdir = "data/"
 )
 
+# List files inside data folder
 data_files <- 
   dir_ls(
     path = "data/cassioalencarnunes-LULC_transitions-c501bd5/Data/"
   )
 
+# Move data files to another folder
 file_move(path = data_files, new_path = "data/")
 
+# Delete other files
 dir_delete(path = "data/cassioalencarnunes-LULC_transitions-c501bd5/")
 
+# Delete compressed archive
 file_delete(path = "data/LULC_transitions-v1.1.zip")
 
+# Some information about the files of interest
 dir_info("data/") %>%
   select(path, size)
 
@@ -108,14 +147,16 @@ dir_info("data/") %>%
 
 ## Organize
 
+Now that I have all the data I need, lets start organizing them in a format that will be easier to explore and use to train and test the models. My objective here is to get all the tables I'm interested, and transform them into a single table. We can see that the tables are separated by themes, so I will manipulate them in bundles, going from one theme to another. I separated them into five categories: "Transects", which holds information about the areas where data was collected; "Biodiversity, which are tables with data about species presence in the evaluated areas; "Environment", with information about terrain, LULC, coordinates; "Soil", that stores data about soil chemical characteristics; "Carbon", which holds information about the biomass present in different places inside the areas.
+
 ::: {.panel-tabset}
 
 ### Transects
 
-I will start opening the table files and organize them into a single table. I will start with the transect classification data, which holds data of two regions, STM ( municipalities of Santarém, Belterra, and Mojuí-dos-Campos) and PGM (municipality of Parangominas):
+Starting with the transects data, which holds data of the two regions, STM (municipalities of Santarém, Belterra, and Mojuí-dos-Campos) and PGM (municipality of Paragominas), it also have other information about the identification of the transects, and also respectively LULC class. The identification of each transect was performed by assigning the catchment where it is located ("catchment"), and the number of the transect inside the catchment ("transect"). The column "transect_code" is the union between both columns I have just mentioned, which creates a unique identification for each transect. This table will serve as a base to join all the other tables.
 
 ```{r}
-#| label: organize transect data
+#| label: organize-transect-data
 
 tr_class <- 
   read_delim(
@@ -136,9 +177,12 @@ head(tr_class)
 
 ### Biodiversity
 
-There is a lot of tables containing biodiversity variables to be analysed. Since they are stored in many different tables, I will map the operation using the **purrr** package, in which we will apply a function to every biodiversity table. The function will open the tables, pivot them to a longer format (there are many columns indicating a certain specie), and than create a new column indicating what is the group that the species are part of. There was a weird column in the dung beetle table, named "aaaaaa", I removed it just as the author of the paper.
+There are a lot of tables containing biodiversity variables to be analysed. Since they are stored in many different tables, I will map the manipulations using the **purrr** package, in which we will apply a function to every biodiversity table. The function will open the tables, pivot them to a longer format (there are many columns indicating a certain specie), and than create a new column indicating what is the group that the species are part of. I also transformed the species number variable into species richness, where the count of individuals found in a single area does not matter, just the occurrence of it (as a binary variable). After that I just summed the number of species found, for each specie category, in each transect, to find the species richness.
+
+By the end of the process I ended up with one table with four columns, containing the region and the transect where the data was collected, the specie category that was found in the respective transect, and the count of different species for each of these categories.
 
 ```{r}
+#| label: organize-biodiversity-data
 
 # Create list of files that contains tables with biodiversity data
 tables_list <- 
@@ -165,12 +209,12 @@ biodiversity <-
         )
 
       table %>%
-        pivot_longer(
+        pivot_longer( # Get the number of individuals for each specie
           cols = starts_with("sp"),
           names_to = "specie",
           values_to = "number"
         ) %>%
-        mutate(
+        mutate( # Create variable with the name of the species category
           bio_specie = str_remove_all(
             string = t, 
             pattern = "data/|_|STM|PGM|.txt"
@@ -180,8 +224,9 @@ biodiversity <-
     }
   )
 
+# Transform the number of individuals into species richness
 biodiversity <- biodiversity %>%
-  mutate(number = if_else(number > 0, 1, 0)) %>%
+  mutate(number = if_else(number > 0, 1, 0)) %>% # Specie was observed or not
   group_by(region, transect_code, bio_specie) %>%
   summarise(bio_richness = sum(number, na.rm = FALSE), .groups = "drop")
 
@@ -189,12 +234,17 @@ head(biodiversity)
 
 ```
 
+There was a weird column in the dung beetle table, named "aaaaaa" (screaming in despair?), I removed it just as the author of the paper.
+
 ### Environment
 
-I will also use the table with some environmental variables.
+The environment data table contained a large number of columns. There was data about the LULC classes, spatial location, terrain characteristics, soil texture, and many other columns in which I could not find their meaning. Since the data collection lacks metadata to provide information about variables, I decided to use only the ones I knew what they were, and that interested me. The manipulation of this table was very simple, I just renamed columns, fixed the name of a LULC class, and rounded some numbers. The columns with coordinate information informs that they are in Universal Transverse Mercator (UTM), which is a projected coordinate system, however there is no additional information about it, but I am going to keep it since I believe I can figure it out.
+
+By the end of the process I ended up with a table of 11 variables about the environment of the data collection area. However, I'm still not sure if I'm actually going to use these data in my analysis.
 
 ```{r}
-
+#| label: organize-environment-data
+ 
 envr <-
   read_delim(
     file = "data/environment_all.txt",
@@ -230,7 +280,10 @@ head(envr)
 
 ### Soil
 
+The variables of the soil tables are mostly about chemical properties of the soil, like acidity and fertility. This data don't require a lot of modifications, I will just rename some variables, transform nitrogen from decimals to percentages, and will round some other variables. Since there are two tables, one for each region, I will map the data manipulation for both tables and merge the results using the  ```purrr::map_df()``` function.
+
 ```{r}
+#| label: organize-soil-data
 
 soil <- 
   map_df(
@@ -262,7 +315,12 @@ head(soil)
 
 ### Carbon
 
+The last tables that I'm going to use are the ones containing data about carbon stocks. The carbon partition used in the published study followed the guidelines for separating carbon stocks by the Intergovernmental Panel on Climate Change (IPCC). The categories of soil are "above-ground carbon pool", "dead wood pool", "litter carbon pool", and "soil carbon pool". These are important variables to estimate an ecosystem biomass.
+
+This table also did not require a lot of modification, just rename some variables, and round numbers. I will also map the manipulation functions for both files (one for each region), to transform it into one table.
+
 ```{r}
+#| label: organize-carbon-data
 
 carbon <- 
   map_df(
@@ -281,7 +339,7 @@ carbon <-
   ) %>%
   rename(
     carbon_aboveground = aboveground_pool, carbon_litter = litter_pool,
-    caebon_deadwood = dead_pool, carbon_soil = soil_pool_new
+    carbon_deadwood = dead_pool, carbon_soil = soil_pool_new
   ) %>%
   mutate(
     across(c(carbon_aboveground:carbon_soil), ~ round(.x, digits = 2))
@@ -295,7 +353,10 @@ head(carbon)
 
 ## Merge
 
+After organizing the tables, I can now merge them altogether into a unique table. I am going to make a series of join operations, merging the tables by the identification columns: "region", "catchment", "transect" and "transect_code." After joining them I will also make some last modifications before exploring the data, I will change the LULC names more beautiful for the column "land_useclass", and will transform "region" and "lu_uf" into ordered factors. I will also save the resulting table into a .parquet file, which is a compressed tabular format.
+
 ```{r}
+#| label: merge-data
 
 full_data <- tr_class %>%
   inner_join(
@@ -350,13 +411,18 @@ rm(list = setdiff(ls(), c("my_palette", "my_labels")))
 
 # Descriptive Analysis
 
-Now we have a single table to start exploring! Lets begin with some descriptive analysis. We will check what are the LULC of the transects of the study.
+Now we have a single table to start exploring! Lets begin with some descriptive analysis. My object here is to find the most general information of the variables I select for analysis, I will keep separating the analysis into categories of variables, as I have done above.
 
 ::: {.panel-tabset}
 
 ## Transects
 
+In total, the published study collected data from a total of 339 transects, 156 from STM and 183 from PGM. I want to know what are the LULC characteristics and distribution in these regions. For that, I will count the occurrence of each LULC, and plot their spatial distribution over the study areas.
+
+Some LULC classes presented a very low frequency: Burned Forests (BF), Abandoned Plantations (AP), Fruiticulture (FRU) and Small Holder's Agriculture (SHA), accumulated only 7, 4, 4 and 4 observations, respectively. Because of that, I'm not going to analyse the data for these for LULC classes in this project.
+
 ```{r}
+#| label: transect-count
 
 data <- 
   read_parquet(
@@ -370,7 +436,7 @@ data <-
 
 lu_subset <- data %>%
   arrange(desc(n)) %>%
-  slice_max(n, n = 8) %>%
+  slice_max(n, n = 8) %>% # Filter LULC classes with more observations
   pull(lu_uf)
 
 data %>%
@@ -378,11 +444,15 @@ data %>%
 
 ```
 
+With the filtered data, I'm going to explore the spatial distribution of the transects and their LULC classes. But for that, I need to discover what is the coordinate system being used. I know that it is based in a Universal Transverse Mercator projection, the problem is that it is divided by zones. After some trials, I found that STM data is in region 21 and PGM in region 23. It is not possible to find more details about the coordinate system, as the ellipsoid used to represent the earth surface, so I used the most common for global data, the WGS84. Even if it may not be the correct one, it wont make a lot of difference in this case, since I'm not looking for extreme spatial accuracy for my map.
+
+Now I can create my figure! I'm going to plot two maps (one for each region), along with bars representing the amount of observations for each LULC class. I am also going to add some interactive functionalities so you can hover with your mouse over the scales and points to find more information.
 
 ```{r}
 #| label: transect-location
 #| warning: false
 
+# Get the boundary of the municipalities
 muni <- 
   read_municipality(
     code_muni = "PA", 
@@ -390,10 +460,11 @@ muni <-
   ) %>% 
   filter(code_muni %in% c(1506807, 1501451, 1505502))
 
+# Transform data into spatial format
 data <- 
-  map2_df(
+  map2_df( 
     .x = c("STM", "PGM"),
-    .y = c("21", "23"),
+    .y = c("21", "23"), # UTM regions
     .f = function(r, z) {
       
       data <-
@@ -436,10 +507,12 @@ maps <-
             `data-id` = lu_uf
           ),
           size = 1,
+          expand = FALSE,
           extra_interactive_params = "data-id"
         ) +
         scale_color_manual_interactive(
           values = my_palette,
+          tooltip = function(breaks) { as.character(my_labels)},
           extra_interactive_params = "data-id",
           `data-id` = data %>% 
             arrange(data, lu_uf) %>% 
@@ -451,8 +524,11 @@ maps <-
           -Inf, Inf, 
           label = glue("bold({r})"), 
           parse = TRUE,
-          hjust = -0.5, vjust = 3
+          hjust = 0, vjust = 1
         ) +
+        labs(x = NULL, y = NULL, title = NULL) +
+        scale_x_continuous(expand = c(0, 0)) +
+        scale_y_continuous(expand = c(0, 0)) +
         guides(
           color = guide_legend_interactive(override.aes = list(size = 4))
         ) +
@@ -460,7 +536,6 @@ maps <-
         theme(
           legend.title = element_blank(),
           panel.grid.major = element_blank(),
-          axis.title = element_blank(),
           legend.position = "bottom"
         )
       
@@ -488,6 +563,9 @@ bars <-
           ),
           show.legend = FALSE
         ) +
+        lims(x = c(0, max(pull(add_count(data, lu_uf), n)))) +
+        labs(x = NULL, y = NULL, title = NULL) +
+        scale_y_discrete(expand = c(0, 0)) +
         scale_fill_manual_interactive(
           values = my_palette,
           extra_interactive_params = "data-id",
@@ -537,11 +615,15 @@ girafe(
 
 ```
 
+We can observe that STM region presented a more balanced distribution of LULC classes being analysed. The most common LULC classes are Pasture (PA), Logged Primary Forests (LF) Logged and Burned Primary Forests (LBF). For both regions, Undisturbed Forests are concentrated to the West, and landscapes with intense human activities are concentrated to the East. So there is some kind of transition pattern, from undisturbed to disturbed landscapes.
+
 ## Biodiveristy
 
-Now we will check the species numbers
+And how about the species that live in these areas? We can imagine that biodiversity of undisturbed landscape are likely higher than of disturbed ones. I want to try to observe patterns of species richness distributed over the LULC classes. For that I'm going to create a matrix plot, showing the median of species richness in each LULC class (I'm sure that taking the median of species richness is not a good practice, but I'm doing it here just to explore some patterns). 
 
 ```{r}
+#| label: biodiversity-matrix
+#| warning: false
 
 data <- 
   read_parquet(
@@ -553,15 +635,16 @@ data <-
   ) %>%
   filter(lu_uf %in% lu_subset) %>%
   group_by(region, lu_uf, bio_specie) %>%
-  summarise(bio_richness = sum(bio_richness), .groups = "keep") %>%
+  summarise(bio_richness = median(bio_richness), .groups = "keep") %>%
   mutate(
     id = cur_group_id(),
     richness_label = glue(
       "{lu_uf} \n",
       "{bio_specie} \n",
-      "Number of species: {bio_richness}"
+      "Number of species: {round(bio_richness)}"
     )
-  )
+  ) %>%
+  drop_na()
 
 plot <- ggplot(data) +
   facet_wrap(vars(region)) +
@@ -570,7 +653,7 @@ plot <- ggplot(data) +
       data_id = id,
       x = bio_specie,
       y = lu_uf,
-      fill = sqrt(bio_richness),
+      fill = bio_richness,
       tooltip = richness_label
     )
   ) +
@@ -609,7 +692,12 @@ girafe(
 
 ```
 
+We can observe that undisturbed landscapes presents higher species richness, the Mechanized Agriculture (MA) presents the lowest values of specie richness. Trees, Saplings and Birds are the most diverse categories of species. Both regions present very similar patterns, so it seems that species richness are not different between regions. Unfortunately, bees species were not recorded for the STM region.
+
+Now lets take a look from another perspective. I'm going to plot an histogram of the overall specie richness of each transect, grouped by regions and by more general LULC classes: Mechanized Agriculture (MA), Pasture (PA), Primary Forests (PF) and Secondary Forests (SF).
+
 ```{r}
+#| label: biodiversity-hist
 
 data <- 
   read_parquet(
@@ -641,7 +729,8 @@ data <-
     bio_richness > 0,
     dense_rank(desc(n)) <= 4 # Filter the four LULC classes with most obs
   ) %>%
-  select(-n)
+  select(-n) %>%
+  drop_na()
 
 plot <- 
   ggplot(data) +
@@ -695,9 +784,14 @@ girafe(
 
 ```
 
+The histograms confirms that difference of species richness between both regions are not apparent, but note that this doesn't mean that they are the same! Maybe the species inside each region are different, maybe they hold different number of individuals population, I imagine that both these measurements are important too. We can also observe that the variance of specie richness are much higher for PF and SF than PA and MA, which may be caused because PF and SF present more diverse conditions, some are less disturbed, others are more disturbed.
+
 ## Soil
 
+So by now we already know that LULC classes and biodiversity are related in some manner. Lets explore if chemical properties of soils are also related to LULC classes. For that I'm simply going to plot the soil variables distributions grouped by general LULC classes, it is a very simple, but very informative type of visualization.
+
 ```{r}
+#| label: soil-distribution
 
 data <- 
   read_parquet(
@@ -765,9 +859,71 @@ girafe(
 
 ```
 
-## Carbon
+The most noticeable pattern in these distributions, at least in my opinion, is the differences between forests and pasture/agriculture. This is very obvious, the effect of human activities over the soil is caused not just by the land cover, but by the practices used in the land uses. When areas are going to be used for livestock and crops, Calcium (Ca) is applied in order to "eliminate" Aluminium (Al) (which is toxic for roots of most of the plants) and to elevate pH (helps plants to absorb nutrients from soil). It is easy to see these differences in the distributions. There are also differences in nutrients that are important to plants Nitrogen (N), Phosphorus (P) and Potassium (K). They are also in higher concentrations at Mechanized Agriculture (MA) and Pasture (PA), since these classes are normally under exogenous fertilization regimes. However, we can also observe that forests present more extreme values of nutrients concentration.
+
+My question now is if soil chemical characteristics would help a prediction model, that aims to predict species richness values. I will explore this checking if they are correlated, which they are probably, since both are related to LULC classes. However, maybe the amount of variation of soil properties may help improving the predictions. Lets take a look.
 
 ```{r}
+#| label: soil-biodiversity-corr
+
+data <- 
+  read_parquet(
+    file = "data/lulc_eco.parquet",
+    col_select = c(
+      "region", "transect_code", "lu_uf",
+      "bio_specie", "bio_richness", 
+      "soil_ph":"soil_al"
+    )
+  ) %>%
+  filter(lu_uf %in% lu_subset) %>%
+  group_by(region, lu_uf, transect_code) %>%
+  summarise(
+    bio_richness = sum(bio_richness, na.rm = TRUE), 
+    across(soil_ph:soil_al, ~ max(.x)),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    soil_ph:soil_al,
+    names_to = "soil_props"
+  ) %>%
+  drop_na()
+
+plot <- 
+  ggplot(data) +
+  facet_wrap(
+    vars(soil_props), 
+    scales = "free_x",
+    labeller = labeller(
+      soil_props = c(
+        soil_al = "Al", soil_ca = "Ca", 
+        soil_k = "K", soil_n = "N", 
+        soil_p = "P", soil_ph = "pH"
+      )
+    )
+  ) +
+  geom_point(aes(x = value, y = bio_richness, color = lu_uf)) +
+  scale_color_manual(values = my_palette) +
+  scale_x_continuous(breaks = pretty_breaks(4)) +
+  labs(y = "Specie Richness", x = NULL) +
+  theme_bw(base_family = "sans") +
+  theme(
+    text = element_text(size = 15, family = "Open Sans"),
+    legend.title = element_blank()
+  )
+  
+
+plot
+
+```
+
+When analyzing the whole data, it is difficult to see correlation, maybe just some species categories might have correlation with soil chemical characteristics (such as lianas, saplings and trees). Also it is not surprising that these variables dispersion in the scatter plot are specially flat at Pastures (PA) and Mechanized Agriculture (MA), since these areas tend to be much more homogeneous than natural landscapes. Remember that the histograms of biodiversity showed lower variation of species richness for PA and MA. Since the relation between soil chemical properties and biodiversity is so unclear and messy, I'll evaluate if I'm going to use them to train my prediction models. 
+
+## Carbon
+
+For the carbon data, I'm also going to explore the distribution of carbon stocks divided by general LULC classes. First, I will see the distributions of all the carbon stocks together. It is possible to observe that Primary Forests have the highest amount of biomass, followed by secondary forests. This is expected specially due to the above-ground and dead wood biomass! 
+
+```{r}
+#| label: carbon-distribution
 
 data <- 
   read_parquet(
@@ -809,7 +965,10 @@ ggplot(data) +
 
 ```
 
+So lets repeat the same figure, but analyzing the Litter and Soil carbon stocks separately. We can see that litter biomass is the lowest for Mechanized Agriculture (MA), which is also expected, crops like soybean, rice, cotton do not produce a lot of litter, and many systems apply soil tillage. But for soil carbon the story is different, it is difficult to see big differences between the LULC classes. This is not new information, estimating effects of LULC classes over soil carbon is a difficult task, but we are not going to discuss this matter in this document.
+
 ```{r}
+#| label: carbon-subset-distribution
 
 data <- 
   read_parquet(
@@ -855,10 +1014,14 @@ ggplot(data) +
   )
 
 ```
+:::
 
 ## Filter data
 
+After exploring a data a little, I already have some knowledge about what I'm dealing with. With this information, I'm going to filter my data before starting to train my models. Regarding the variables, I'm going to drop some chemical soil characteristics (Ca, K, N, P), and for carbon stocks, I will drop Dead Wood and Soil carbon variables I will also only keep the rows that belongs to the 8 LULC classes with most observations, and I will remove Specie Richness values for Bees, which would cause a serious imbalance in the data.
+
 ```{r}
+#| label: subset-data
 
 data <- 
   read_parquet(
@@ -866,8 +1029,8 @@ data <-
     col_select = c(
       "region", "catchment", "transect", "land_useclass", "lu_uf",
       "bio_richness", "bio_specie",
-      "soil_ph":"soil_al",
-      "carbon_aboveground":"carbon_soil"
+      "soil_ph", "soil_al",
+      "carbon_aboveground", "carbon_litter"
     )
   ) %>%
   filter(
@@ -885,34 +1048,39 @@ write_parquet(
 ```
 
 
-:::
-
 # Modelling
 
+Now its time to start the modelling exercise. I'm going to train and test four models, two prediction models (Poisson Regression and Random Forest), and two classification models (Decision Tree and Random Forest).
+
+I will start the exercise preparing the train and test data. Normally it is performed a random sampling separating 70% of the data for training, and 30% for testing (proportions vary). In this exercise I will take a different approach, I will use the STM region to train my models (n = 156), and the PGM region to test them (n = 183). I will choose this strategy to keep both splits as independent as they could be, using a "external" data set to test my models. I choose the STM region as train split because it is more balanced than the PGM region (regarding the LULC classes).
+
 ```{r}
+#| label: split-data
 
 data <- 
-  read_parquet(
-    file = "data/filtered_lulc_eco.parquet",
-    col_select = c(
-      "region", "catchment", "transect", "land_useclass", "lu_uf",
-      "bio_richness", "bio_specie",
-      "soil_ph":"soil_al",
-      "carbon_aboveground":"carbon_soil"
-    )
-  ) %>%
-  drop_na()
+  read_parquet(file = "data/filtered_lulc_eco.parquet") %>%  
+  drop_na() %>%
+  mutate(lu_uf = droplevels(lu_uf))
 
-set.seed(821715)
+#set.seed(821715)
 
-data_split <- initial_split(data, prop = 2/4)
+#data_split <- initial_split(data, prop = 2/4)
 
-train_data <- training(data_split)
-test_data  <- testing(data_split)
+train_data <- filter(data, region == "STM")
+test_data  <- filter(data, region == "PGM")
 
 ```
 
+::: {.panel-tabset}
+
+## Prediction
+
+### Poisson Regression
+
+The first model will be the Poisson Regression, a Generalized Linear Model (GLM), which is appropriate to predict count data (count of number of different species in one area!). Before training the model, I will set some pre processing steps: remove near zero variance variables, and create dummy variables to represent nominal predictors. 
+
 ```{r}
+#| label: pr-mod
 
 biod_rec <- 
   recipe(bio_richness ~ ., data = train_data) %>%
@@ -920,12 +1088,12 @@ biod_rec <-
     region, catchment, transect, land_useclass,
     new_role = "ID"
   ) %>%
-  step_dummy(all_nominal_predictors()) %>%
-  step_zv(all_predictors())
+  step_nzv(all_predictors()) %>%
+  step_dummy(all_nominal_predictors())
 
 biod_mod <-
-  linear_reg() %>%
-  set_engine("lm")
+  poisson_reg() %>%
+  set_engine("glm")
 
 biod_wflow <- 
   workflow() %>% 
@@ -936,82 +1104,48 @@ biod_fit <-
   biod_wflow %>%
   fit(data = train_data)
 
-biod_aug <- augment(biod_fit, test_data)
+biod_aug <- 
+  augment(biod_fit, test_data) %>%
+  clean_names()
 
-biod_aug %>% 
-  metrics(truth = bio_richness, estimate = .pred)
-
-biod_aug %>%
-  ggplot() +
-  geom_point(
-    aes(
-      x = bio_richness,
-      y = .pred,
-      color = land_useclass
-    )
-  ) +
-  lims(x = c(-30, 100), y = c(-30, 100)) +
-  geom_abline() +
-  coord_equal() +
-  theme_bw()
+biod_wflow
 
 ```
 
+The Poisson Regression, as expected, did not predicted any negative numbers, which could happen in case we tried to predict values using Linear Least Squares Regression. This model do not present any parameter to be optimized before fitting the final model. The MAE points out that the mean absolute error is around 10 species, which can be a good performance for some categories of species, or bad for others (some categories of species are more abundant than others).
+
 ```{r}
-
-biod_rec <- 
-  recipe(bio_richness ~ ., data = train_data) %>%
-  update_role(
-    region, catchment, transect, land_useclass,
-    new_role = "ID"
-  ) %>%
-  step_zv(all_predictors())
-
-biod_mod <-
-  rand_forest() %>%
-  set_engine("ranger") %>%
-  set_mode("regression")
-
-biod_wflow <- 
-  workflow() %>% 
-  add_model(biod_mod) %>% 
-  add_recipe(biod_rec)
-
-biod_fit <- 
-  biod_wflow %>%
-  fit(data = train_data)
-
-biod_aug <- augment(biod_fit, test_data)
+#| label: pr-metrics
 
 mod_met <- biod_aug %>% 
-  metrics(truth = bio_richness, estimate = .pred) %>%
-  mutate(.estimate = round(.estimate, digits = 2))
+  metrics(truth = bio_richness, estimate = pred) %>%
+  clean_names() %>%
+  mutate(estimate = round(estimate, digits = 2))
 
 biod_aug %>%
   ggplot() +
   geom_point(
     aes(
       x = bio_richness,
-      y = .pred,
+      y = pred,
       color = lu_uf
     )
   ) +
   scale_color_manual(values = my_palette) +
   annotate(
     geom = "text",
-    x = 0, y = c(100, 96, 92),
+    x = 0, y = c(80, 70, 60),
     hjust = 0,
     label = c(
-      glue("bold({toupper(mod_met$.metric[1])})- {mod_met$.estimate[1]}"),
-      glue("bold({toupper(mod_met$.metric[3])})- {mod_met$.estimate[3]}"),
-      glue("bold({toupper(mod_met$.metric[2])})- {mod_met$.estimate[2]}")
+      glue("bold({toupper(mod_met$metric[1])})- {mod_met$estimate[1]}"),
+      glue("bold({toupper(mod_met$metric[3])})- {mod_met$estimate[3]}"),
+      glue("bold({toupper(mod_met$metric[2])})- {mod_met$estimate[2]}")
     ),
     parse = TRUE,
     size = 5
   ) +
-  lims(x = c(0, 100), y = c(0, 100)) +
   labs(x = "Observations", y = "Estimations") +
-  geom_abline() +
+  geom_abline(slope = 1, intercept = 0) +
   coord_equal() +
   theme_bw() +
   theme(
@@ -1020,3 +1154,300 @@ biod_aug %>%
 
 ```
 
+### Random Forest
+
+Now lets train a Random Forest model, and we will check if it will be able to perform better than the Poisson Regression in the task to predict Specie Richness. The Random Forest is known to be very robust to imbalances, it does not require creation of dummies for ordinal data, performing well with categorized data. Before performing the final fit to be tested, I will estimate three parameters of the model, in order to find a good combination for using in the final fit. I will perform this optimization using V-Fold Cross-Validation in the training set.
+
+```{r}
+#| label: optmize-rf
+#| warning: false
+
+biod_mod <-
+  rand_forest(
+    mtry = tune(),
+    trees = tune(),
+    min_n = tune()
+  ) %>%
+  set_engine("ranger") %>%
+  set_mode("regression")
+
+biod_rec <- 
+  recipe(bio_richness ~ ., data = train_data) %>%
+  update_role(
+    region, catchment, transect, land_useclass,
+    new_role = "ID"
+  ) %>%
+  step_nzv(all_predictors())
+
+biod_wflow <- 
+  workflow() %>% 
+  add_model(biod_mod) %>% 
+  add_recipe(biod_rec)
+
+biod_fold <- vfold_cv(train_data, v = 10)
+
+biod_res <- biod_wflow %>% 
+  tune_grid(
+    biod_fold,
+    grid = 25,
+    control = control_grid(save_pred = TRUE),
+    metrics = metric_set(rmse)
+  )
+
+biod_best <- biod_res %>% 
+  select_best(metric = "rmse")
+
+biod_res %>%
+  show_best() %>%
+  clean_names()
+
+```
+
+We found the parameters that resulted in the models with lower RMSE values, which punishes bigger error values. Now that we know the parameters values to use, lets update the model and perform the final fit.
+
+```{r}
+
+biod_mod <-
+  rand_forest(
+    mtry = biod_best$mtry,
+    trees = biod_best$trees,
+    min_n = biod_best$min_n
+  ) %>%
+  set_engine("ranger", importance = "impurity") %>%
+  set_mode("regression")
+
+biod_wflow <- biod_wflow %>%
+  update_model(biod_mod)
+
+biod_fit <- 
+  biod_wflow %>%
+  fit(data = train_data)
+
+biod_aug <- 
+  augment(biod_fit, test_data) %>%
+  clean_names()
+
+biod_wflow
+
+```
+
+The Random Forest performed better than the Poisson Regression in predicting Specie Richness. The MAE dropped by more than 2 species count. The dispersion of points is also less clustered than what we observed from the Poisson Regression.
+
+```{r}
+#| label: rf-metrics
+
+mod_met <- biod_aug %>% 
+  metrics(truth = bio_richness, estimate = pred) %>%
+  clean_names() %>%
+  mutate(estimate = round(estimate, digits = 2))
+
+biod_aug %>%
+  ggplot() +
+  geom_point(
+    aes(
+      x = bio_richness,
+      y = pred,
+      color = lu_uf
+    )
+  ) +
+  scale_color_manual(values = my_palette) +
+  annotate(
+    geom = "text",
+    x = 0, y = c(90, 80, 70),
+    hjust = 0,
+    label = c(
+      glue("bold({toupper(mod_met$metric[1])})- {mod_met$estimate[1]}"),
+      glue("bold({toupper(mod_met$metric[3])})- {mod_met$estimate[3]}"),
+      glue("bold({toupper(mod_met$metric[2])})- {mod_met$estimate[2]}")
+    ),
+    parse = TRUE,
+    size = 5
+  ) +
+  labs(x = "Observations", y = "Estimations") +
+  geom_abline(intercept = 0, slope = 1) +
+  coord_equal() +
+  theme_bw() +
+  theme(
+    legend.title = element_blank()
+  )
+
+```
+
+If we check the importance of each variable in predicting Species Richness, we will see that obviously the specie category was the most important one. After that, we have the above-ground biomass and LULC classes. As expected the soil chemical characteristics were the least important variables.
+
+```{r}
+
+var_importance <- biod_fit %>%
+  extract_fit_parsnip() %>%
+  vi() %>%
+  clean_names()
+
+var_importance %>%
+  ggplot() + 
+  geom_col(
+    aes(x = importance, y = reorder(variable, importance)),
+    fill = "transparent",
+    color = "#000000"
+  ) +
+  labs(x = "Importance", y = NULL) +
+  theme_bw()
+
+```
+
+
+## Classification
+
+### Decision tree
+
+```{r}
+
+lulc_mod_tune <-
+  decision_tree(
+    cost_complexity = tune(),
+    tree_depth = tune(),
+    min_n = tune()
+  ) %>% 
+  set_engine("rpart") %>%
+  set_mode("classification")
+
+lulc_rec <- 
+  recipe(lu_uf ~ ., data = train_data) %>%
+  update_role(
+    region, catchment, transect, land_useclass,
+    new_role = "ID"
+  ) %>%
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_normalize(all_predictors())
+
+lulc_wflow <- 
+  workflow() %>% 
+  add_model(lulc_mod_tune) %>% 
+  add_recipe(lulc_rec)
+
+reg_grid <- 
+  grid_regular(
+    cost_complexity(),
+    tree_depth(),
+    min_n(),
+    levels = 10
+  )
+
+lulc_fold <- bootstraps(train_data, times = 10)
+
+lulc_res <- lulc_wflow %>%
+  tune_grid(
+    lulc_fold,
+    grid = 20,
+    control = control_grid(save_pred = TRUE),
+    metrics = metric_set(roc_auc)
+  )
+
+lulc_best <- lulc_res %>% 
+  select_best(metric = "roc_auc")
+
+lulc_mod <-
+  decision_tree(
+    cost_complexity = lulc_best$cost_complexity,
+    tree_depth = lulc_best$tree_depth,
+    min_n = lulc_best$min_n
+  ) %>%
+  set_engine("rpart") %>%
+  set_mode("classification")
+
+lulc_wflow <- lulc_wflow %>%
+  update_model(lulc_mod)
+
+lulc_fit <- 
+  lulc_wflow %>%
+  fit(data = train_data)
+
+lulc_aug <- augment(lulc_fit, test_data)
+
+lulc_fit %>%
+  extract_fit_parsnip() %>%
+  vip::vi()
+
+mod_met <- lulc_aug %>% 
+  roc_auc(truth = lu_uf, .pred_UF:.pred_MA) %>%
+  mutate(.estimate = round(.estimate, digits = 2))
+
+```
+
+### Random forest
+
+```{r}
+
+lulc_mod_tune <-
+  rand_forest(
+    mtry = tune(),
+    trees = tune(),
+    min_n = tune()
+  ) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+lulc_rec <- 
+  recipe(lu_uf ~ ., data = train_data) %>%
+  update_role(
+    region, catchment, transect, land_useclass,
+    new_role = "ID"
+  ) %>%
+  step_zv(all_predictors())
+
+lulc_wflow <- 
+  workflow() %>% 
+  add_model(lulc_mod_tune) %>% 
+  add_recipe(lulc_rec)
+
+lulc_fold <- bootstraps(train_data, times = 10)
+
+lulc_res <- lulc_wflow %>%
+  tune_grid(
+    lulc_fold,
+    grid = 20,
+    control = control_grid(save_pred = TRUE),
+    metrics = metric_set(roc_auc)
+  )
+
+lulc_best <- lulc_res %>% 
+  select_best(metric = c("roc_auc"))
+
+lulc_mod <-
+  rand_forest(
+    mtry = lulc_best$mtry,
+    trees = lulc_best$trees,
+    min_n = lulc_best$min_n
+  ) %>%
+  set_engine("ranger", importance = "impurity") %>%
+  set_mode("classification")
+
+lulc_wflow <- lulc_wflow %>%
+  update_model(lulc_mod)
+
+lulc_fit <- 
+  lulc_wflow %>%
+  fit(data = train_data)
+
+lulc_aug <- augment(lulc_fit, test_data)
+
+lulc_fit %>%
+  extract_fit_parsnip() %>%
+  vip::vi()
+
+mod_met <- lulc_aug %>% 
+  roc_auc(truth = lu_uf, .pred_UF:.pred_MA) %>%
+  mutate(.estimate = round(.estimate, digits = 2))
+
+```
+:::
+
+# Final remarks
+
+# References
+
+::: {#refs}
+
+
+
+:::
