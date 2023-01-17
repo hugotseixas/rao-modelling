@@ -106,6 +106,7 @@ I am going to download the data directly from the Zenodo repository, in which I 
 
 ```{r}
 #| label: download-data
+#| message: false
 
 file_name <- "data/LULC_transitions-v1.1.zip"
 
@@ -657,10 +658,7 @@ plot <- ggplot(data) +
       tooltip = richness_label
     )
   ) +
-  scale_fill_gradient(
-    low = "#2c2929",
-    high = "#C0C0C0"
-  ) +
+  scale_fill_gradient(low = "#2c2929", high = "#C0C0C0") +
   labs(y = "", x = "") +
   theme_bw(base_family = "sans") +
   theme(
@@ -1057,7 +1055,7 @@ I will start the exercise preparing the train and test data. Normally it is perf
 ```{r}
 #| label: split-data
 
-data <- 
+data_pred <- 
   read_parquet(file = "data/filtered_lulc_eco.parquet") %>%  
   drop_na() %>%
   mutate(lu_uf = droplevels(lu_uf))
@@ -1066,8 +1064,18 @@ data <-
 
 #data_split <- initial_split(data, prop = 2/4)
 
-train_data <- filter(data, region == "STM")
-test_data  <- filter(data, region == "PGM")
+train_data_pred <- filter(data_pred, region == "STM")
+test_data_pred  <- filter(data_pred, region == "PGM")
+
+data_class <- data_pred %>%
+  pivot_wider(
+    names_from = bio_specie,
+    values_from = bio_richness
+  ) %>%
+  drop_na()
+
+train_data_class <- filter(data_class, region == "STM")
+test_data_class  <- filter(data_class, region == "PGM")
 
 ```
 
@@ -1080,10 +1088,10 @@ test_data  <- filter(data, region == "PGM")
 The first model will be the Poisson Regression, a Generalized Linear Model (GLM), which is appropriate to predict count data (count of number of different species in one area!). Before training the model, I will set some pre processing steps: remove near zero variance variables, and create dummy variables to represent nominal predictors. 
 
 ```{r}
-#| label: pr-mod
+#| label: pr-mod-biod
 
 biod_rec <- 
-  recipe(bio_richness ~ ., data = train_data) %>%
+  recipe(bio_richness ~ ., data = train_data_pred) %>%
   update_role(
     region, catchment, transect, land_useclass,
     new_role = "ID"
@@ -1102,10 +1110,10 @@ biod_wflow <-
 
 biod_fit <- 
   biod_wflow %>%
-  fit(data = train_data)
+  fit(data = train_data_pred)
 
 biod_aug <- 
-  augment(biod_fit, test_data) %>%
+  augment(biod_fit, test_data_pred) %>%
   clean_names()
 
 biod_wflow
@@ -1115,7 +1123,7 @@ biod_wflow
 The Poisson Regression, as expected, did not predicted any negative numbers, which could happen in case we tried to predict values using Linear Least Squares Regression. This model do not present any parameter to be optimized before fitting the final model. The MAE points out that the mean absolute error is around 10 species, which can be a good performance for some categories of species, or bad for others (some categories of species are more abundant than others).
 
 ```{r}
-#| label: pr-metrics
+#| label: pr-metrics-biod
 
 mod_met <- biod_aug %>% 
   metrics(truth = bio_richness, estimate = pred) %>%
@@ -1159,7 +1167,7 @@ biod_aug %>%
 Now lets train a Random Forest model, and we will check if it will be able to perform better than the Poisson Regression in the task to predict Specie Richness. The Random Forest is known to be very robust to imbalances, it does not require creation of dummies for ordinal data, performing well with categorized data. Before performing the final fit to be tested, I will estimate three parameters of the model, in order to find a good combination for using in the final fit. I will perform this optimization using V-Fold Cross-Validation in the training set.
 
 ```{r}
-#| label: optmize-rf
+#| label: rf-optmize-biod
 #| warning: false
 
 biod_mod <-
@@ -1172,7 +1180,7 @@ biod_mod <-
   set_mode("regression")
 
 biod_rec <- 
-  recipe(bio_richness ~ ., data = train_data) %>%
+  recipe(bio_richness ~ ., data = train_data_pred) %>%
   update_role(
     region, catchment, transect, land_useclass,
     new_role = "ID"
@@ -1184,12 +1192,12 @@ biod_wflow <-
   add_model(biod_mod) %>% 
   add_recipe(biod_rec)
 
-biod_fold <- vfold_cv(train_data, v = 10)
+biod_fold <- vfold_cv(train_data_pred, v = 5, repeats = 1)
 
 biod_res <- biod_wflow %>% 
   tune_grid(
     biod_fold,
-    grid = 25,
+    grid = 10,
     control = control_grid(save_pred = TRUE),
     metrics = metric_set(rmse)
   )
@@ -1206,6 +1214,7 @@ biod_res %>%
 We found the parameters that resulted in the models with lower RMSE values, which punishes bigger error values. Now that we know the parameters values to use, lets update the model and perform the final fit.
 
 ```{r}
+#| label: rf-final-fit-biod
 
 biod_mod <-
   rand_forest(
@@ -1221,10 +1230,10 @@ biod_wflow <- biod_wflow %>%
 
 biod_fit <- 
   biod_wflow %>%
-  fit(data = train_data)
+  fit(data = train_data_pred)
 
 biod_aug <- 
-  augment(biod_fit, test_data) %>%
+  augment(biod_fit, test_data_pred) %>%
   clean_names()
 
 biod_wflow
@@ -1234,7 +1243,7 @@ biod_wflow
 The Random Forest performed better than the Poisson Regression in predicting Specie Richness. The MAE dropped by more than 2 species count. The dispersion of points is also less clustered than what we observed from the Poisson Regression.
 
 ```{r}
-#| label: rf-metrics
+#| label: rf-metrics-biod
 
 mod_met <- biod_aug %>% 
   metrics(truth = bio_richness, estimate = pred) %>%
@@ -1276,6 +1285,7 @@ biod_aug %>%
 If we check the importance of each variable in predicting Species Richness, we will see that obviously the specie category was the most important one. After that, we have the above-ground biomass and LULC classes. As expected the soil chemical characteristics were the least important variables.
 
 ```{r}
+#| label: rf-importance-biod
 
 var_importance <- biod_fit %>%
   extract_fit_parsnip() %>%
@@ -1294,14 +1304,17 @@ var_importance %>%
 
 ```
 
-
 ## Classification
 
-### Decision tree
+### Decision Tree
+
+The classification will aim to correctly identify the LULC classes using the biodiversity, soil and carbon data. I will start training a Decision Tree algorithm, and than another Random Forest (but this time for classification). For the Decision Tree, we will need to center and scale numerical predictors, as also create dummy variables and filter near zero variance variables. I will also optimize three parameters of my model specification, but this time I will use Bootstraps. 
 
 ```{r}
+#| label: dt-optmization-lulc
+#| message: false
 
-lulc_mod_tune <-
+dt_mod_tune <-
   decision_tree(
     cost_complexity = tune(),
     tree_depth = tune(),
@@ -1310,75 +1323,125 @@ lulc_mod_tune <-
   set_engine("rpart") %>%
   set_mode("classification")
 
-lulc_rec <- 
-  recipe(lu_uf ~ ., data = train_data) %>%
+dt_rec <- 
+  recipe(lu_uf ~ ., data = train_data_class) %>%
   update_role(
     region, catchment, transect, land_useclass,
     new_role = "ID"
   ) %>%
-  step_dummy(all_nominal_predictors()) %>% 
   step_zv(all_predictors()) %>% 
-  step_normalize(all_predictors())
+  step_normalize(all_numeric_predictors()) %>%
+  step_dummy(all_nominal_predictors()) 
 
-lulc_wflow <- 
+dt_wflow <- 
   workflow() %>% 
-  add_model(lulc_mod_tune) %>% 
-  add_recipe(lulc_rec)
+  add_model(dt_mod_tune) %>% 
+  add_recipe(dt_rec)
 
-reg_grid <- 
-  grid_regular(
-    cost_complexity(),
-    tree_depth(),
-    min_n(),
-    levels = 10
-  )
+dt_boots <- bootstraps(train_data_class, times = 1)
 
-lulc_fold <- bootstraps(train_data, times = 10)
-
-lulc_res <- lulc_wflow %>%
+dt_res <- dt_wflow %>%
   tune_grid(
-    lulc_fold,
-    grid = 20,
+    dt_boots,
+    grid = 10,
     control = control_grid(save_pred = TRUE),
-    metrics = metric_set(roc_auc)
+    metrics = metric_set(accuracy)
   )
 
-lulc_best <- lulc_res %>% 
-  select_best(metric = "roc_auc")
+dt_best <- dt_res %>% 
+  select_best(metric = "accuracy")
 
-lulc_mod <-
+dt_res %>%
+  show_best() %>%
+  clean_names()
+
+```
+
+We selected the best model, which did not presented a very high accuracy for the validation set. Lets see if these results holds when testing the model with external data.
+
+```{r}
+#| label: dt-final_fit-lulc
+#| message: false
+
+dt_mod <-
   decision_tree(
-    cost_complexity = lulc_best$cost_complexity,
-    tree_depth = lulc_best$tree_depth,
-    min_n = lulc_best$min_n
+    cost_complexity = dt_best$cost_complexity,
+    tree_depth = dt_best$tree_depth,
+    min_n = dt_best$min_n
   ) %>%
   set_engine("rpart") %>%
   set_mode("classification")
 
-lulc_wflow <- lulc_wflow %>%
-  update_model(lulc_mod)
+dt_wflow <- dt_wflow %>%
+  update_model(dt_mod)
 
-lulc_fit <- 
-  lulc_wflow %>%
-  fit(data = train_data)
+dt_fit <- 
+  dt_wflow %>%
+  fit(data = train_data_class)
 
-lulc_aug <- augment(lulc_fit, test_data)
+dt_aug <- 
+  augment(dt_fit, test_data_class) %>%
+  clean_names()
 
-lulc_fit %>%
-  extract_fit_parsnip() %>%
-  vip::vi()
+dt_wflow
 
-mod_met <- lulc_aug %>% 
-  roc_auc(truth = lu_uf, .pred_UF:.pred_MA) %>%
-  mutate(.estimate = round(.estimate, digits = 2))
+```
+
+The performance of the Decision Trees was not satisfactory, with a low value of global accuracy. However, It was expected that classifying such refined classification of forests states would be challenging. The interesting is that the model made a decent job at separating Primary Forests (UF, LF, LBF) from Secondary Forests (SFold and SFyoung) and Mechanized Agriculture (MA) and Pasture (PA).
+
+```{r}
+#| label: dt-metrics-lulc
+#| message: false
+
+acc <- dt_aug %>% 
+  accuracy(truth = lu_uf, pred_class) %>%
+  clean_names() %>%
+  mutate(estimate = round(estimate, digits = 2))
+
+dt_aug %>%
+  select(truth = lu_uf, pred = pred_class) %>% 
+  mutate(score = 1) %>%
+  group_by(truth, pred) %>% 
+  summarise(
+    score = sum(score), 
+    .groups = "drop"
+  ) %>%
+  right_join(
+    expand(data = dt_aug, truth = lu_uf, pred = pred_class)
+  ) %>%
+  replace_na(list(score = 0)) %>%
+  mutate(cond_score = if_else(truth == pred, score, NA_real_)) %>%
+  ggplot(aes(x = truth, y = pred)) +
+  geom_tile(
+    aes(fill = cond_score),
+    na.rm = TRUE
+  ) +
+  geom_text(aes(label = score)) +
+  scale_y_discrete(limits = rev) +
+  scale_fill_gradient(
+    high = "#6f6f6f", low = "#C0C0C0",
+    na.value = "transparent",
+    guide = NULL
+  ) +
+  labs(
+    title = glue("Global Accuracy: {acc$estimate}"),
+    x = "Prediction",
+    y = "Truth"
+  ) +
+  theme_bw() +
+  theme(panel.grid = element_blank())
 
 ```
 
 ### Random forest
 
-```{r}
+I'm going to optimize and train the Random Forest the same way I did with the Decision Tree.
 
-lulc_mod_tune <-
+```{r}
+#| label: rf-optimization-lulc
+#| message: false
+
+rf_mod_tune <-
   rand_forest(
     mtry = tune(),
     trees = tune(),
@@ -1387,67 +1450,121 @@ lulc_mod_tune <-
   set_engine("ranger") %>%
   set_mode("classification")
 
-lulc_rec <- 
-  recipe(lu_uf ~ ., data = train_data) %>%
+rf_rec <- 
+  recipe(lu_uf ~ ., data = train_data_class) %>%
   update_role(
     region, catchment, transect, land_useclass,
     new_role = "ID"
   ) %>%
   step_zv(all_predictors())
 
-lulc_wflow <- 
+rf_wflow <- 
   workflow() %>% 
-  add_model(lulc_mod_tune) %>% 
-  add_recipe(lulc_rec)
+  add_model(rf_mod_tune) %>% 
+  add_recipe(rf_rec)
 
-lulc_fold <- bootstraps(train_data, times = 10)
+rf_boots <- bootstraps(train_data_class, times = 1)
 
-lulc_res <- lulc_wflow %>%
+rf_res <- rf_wflow %>%
   tune_grid(
-    lulc_fold,
-    grid = 20,
+    rf_boots,
+    grid = 10,
     control = control_grid(save_pred = TRUE),
-    metrics = metric_set(roc_auc)
+    metrics = metric_set(accuracy)
   )
 
-lulc_best <- lulc_res %>% 
-  select_best(metric = c("roc_auc"))
+rf_best <- rf_res %>% 
+  select_best(metric = c("accuracy"))
 
-lulc_mod <-
+rf_res %>%
+  show_best()
+
+```
+
+Accuracy metrics did not differ much from the Decision Tree model, now lets apply the final fit with the whole train data and see the final results for the Random Forest model.
+
+```{r}
+#| label: rf-final-fit-lulc
+#| message: false
+
+rf_mod <-
   rand_forest(
-    mtry = lulc_best$mtry,
-    trees = lulc_best$trees,
-    min_n = lulc_best$min_n
+    mtry = rf_best$mtry,
+    trees = rf_best$trees,
+    min_n = rf_best$min_n
   ) %>%
   set_engine("ranger", importance = "impurity") %>%
   set_mode("classification")
 
-lulc_wflow <- lulc_wflow %>%
-  update_model(lulc_mod)
+rf_wflow <- rf_wflow %>%
+  update_model(rf_mod)
 
-lulc_fit <- 
-  lulc_wflow %>%
-  fit(data = train_data)
+rf_fit <- 
+  rf_wflow %>%
+  fit(data = train_data_class)
 
-lulc_aug <- augment(lulc_fit, test_data)
+rf_aug <- 
+  augment(rf_fit, test_data_class) %>%
+  clean_names()
 
-lulc_fit %>%
-  extract_fit_parsnip() %>%
-  vip::vi()
-
-mod_met <- lulc_aug %>% 
-  roc_auc(truth = lu_uf, .pred_UF:.pred_MA) %>%
-  mutate(.estimate = round(.estimate, digits = 2))
+rf_wflow
 
 ```
+
+The overall accuracy is very similar from the Decision Tree, the same happened for the confusion matrix. The class with lowest accuracy is reforestation, which is also the LULC class with least observations.
+
+```{r}
+#| label: rf-metrics-lulc
+#| message: false
+
+acc <- rf_aug %>% 
+  accuracy(truth = lu_uf, pred_class) %>%
+  clean_names() %>%
+  mutate(estimate = round(estimate, digits = 2))
+
+rf_aug %>%
+  select(truth = lu_uf, pred = pred_class) %>% 
+  mutate(score = 1) %>%
+  group_by(truth, pred) %>% 
+  summarise(
+    score = sum(score), 
+    .groups = "drop"
+  ) %>%
+  right_join(
+    expand(data = rf_aug, truth = lu_uf, pred = pred_class)
+  ) %>%
+  replace_na(list(score = 0)) %>%
+  mutate(cond_score = if_else(truth == pred, score, NA_real_)) %>%
+  ggplot(aes(x = truth, y = pred)) +
+  geom_tile(
+    aes(fill = cond_score),
+    na.rm = TRUE
+  ) +
+  geom_text(aes(label = score)) +
+  scale_y_discrete(limits = rev) +
+  scale_fill_gradient(
+    high = "#6f6f6f", low = "#C0C0C0",
+    na.value = "transparent",
+    guide = NULL
+  ) +
+  labs(
+    title = glue("Global Accuracy: {acc$estimate}"),
+    x = "Prediction",
+    y = "Truth"
+  ) +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+```
+
 :::
 
 # Final remarks
 
+This modelling exercise showed that the prediction models showed a decent result, while the classification models did not showed satisfactory results. This document will be improved over time, and more techniques of modelling will be added, so maybe the results will change over time.
+
 # References
 
 ::: {#refs}
-
-
 
 :::
