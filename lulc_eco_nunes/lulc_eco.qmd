@@ -43,7 +43,7 @@ From the available data, I will try two exercises:
  
  - Classify the land use and land cover with information about: species richness, carbon stocks and soil properties?
 
-I will try different models to perform the predictions and classifications, and at the same time, will try to present the data and results in a intuitive manner.
+I will try different models to perform the predictions and classifications, and at the same time, will try to present the data and results in a intuitive manner. In this exercise, I chose to use Poisson Regression [@Coxe2009; @Hayat2014], Random Forest [@Breiman2001; @Biau2016], and Decision Trees [@Kingsford2008; @deVille2013].
 
 Here are the packages used in this exercise:
 
@@ -1173,7 +1173,7 @@ Now lets train a Random Forest model, and we will check if it will be able to pe
 biod_mod <-
   rand_forest(
     mtry = tune(),
-    trees = tune(),
+    trees = 100,
     min_n = tune()
   ) %>%
   set_engine("ranger") %>%
@@ -1192,12 +1192,12 @@ biod_wflow <-
   add_model(biod_mod) %>% 
   add_recipe(biod_rec)
 
-biod_fold <- vfold_cv(train_data_pred, v = 5, repeats = 1)
+biod_fold <- vfold_cv(train_data_pred, v = 5, repeats = 100)
 
 biod_res <- biod_wflow %>% 
   tune_grid(
     biod_fold,
-    grid = 10,
+    grid = 50,
     control = control_grid(save_pred = TRUE),
     metrics = metric_set(rmse)
   )
@@ -1219,7 +1219,7 @@ We found the parameters that resulted in the models with lower RMSE values, whic
 biod_mod <-
   rand_forest(
     mtry = biod_best$mtry,
-    trees = biod_best$trees,
+    trees = 100,
     min_n = biod_best$min_n
   ) %>%
   set_engine("ranger", importance = "impurity") %>%
@@ -1338,12 +1338,12 @@ dt_wflow <-
   add_model(dt_mod_tune) %>% 
   add_recipe(dt_rec)
 
-dt_boots <- bootstraps(train_data_class, times = 1)
+dt_boots <- bootstraps(train_data_class, times = 100)
 
 dt_res <- dt_wflow %>%
   tune_grid(
     dt_boots,
-    grid = 10,
+    grid = 50,
     control = control_grid(save_pred = TRUE),
     metrics = metric_set(accuracy)
   )
@@ -1444,7 +1444,7 @@ I'm going to optimize and train the Random Forest the same way I did with the De
 rf_mod_tune <-
   rand_forest(
     mtry = tune(),
-    trees = tune(),
+    trees = 100,
     min_n = tune()
   ) %>%
   set_engine("ranger") %>%
@@ -1463,12 +1463,12 @@ rf_wflow <-
   add_model(rf_mod_tune) %>% 
   add_recipe(rf_rec)
 
-rf_boots <- bootstraps(train_data_class, times = 1)
+rf_boots <- bootstraps(train_data_class, times = 100)
 
 rf_res <- rf_wflow %>%
   tune_grid(
     rf_boots,
-    grid = 10,
+    grid = 50,
     control = control_grid(save_pred = TRUE),
     metrics = metric_set(accuracy)
   )
@@ -1490,7 +1490,7 @@ Accuracy metrics did not differ much from the Decision Tree model, now lets appl
 rf_mod <-
   rand_forest(
     mtry = rf_best$mtry,
-    trees = rf_best$trees,
+    trees = 100,
     min_n = rf_best$min_n
   ) %>%
   set_engine("ranger", importance = "impurity") %>%
