@@ -23,7 +23,7 @@ format:
     code-overflow: wrap
     code-fold: true
     code-tools: true
-    source: https://github.com/hugotseixas/rao_modelling/blob/main/lulc_eco_nunes/lulc_eco.qmd
+    source: https://github.com/hugotseixas/rao_modelling/blob/main/01_lulc_eco/lulc_eco.qmd
     self-contained: true
 
 execute:
@@ -51,6 +51,7 @@ Here are the packages used in this exercise:
 #| label: load-packages
 #| warning: false
 
+library(ranger)
 library(poissonreg)
 library(vip)
 library(sf)
@@ -75,8 +76,8 @@ I will also set some settings that will be used across the document.
 # These are the colors to represent LULC classes.
 my_palette <-
   c(
-    "#004d25", "#11823b", "#99AA38", "#721121", 
-    "#A5402D", "#F15156", "#FFC07F", "#804D54"
+    "#445B1D", "#96A01F", "#6D7E47", "#660202", 
+    "#87141D", "#B14D33", "#264572", "#447990"
   )
 
 # These are the labels for the LULC classes
